@@ -6,11 +6,22 @@ const TextReveal = ({ text, delay = 0 }) => {
   const words = text.split(' ');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let showTimeout, hideTimeout;
+    const animate = () => {
       setIsVisible(true);
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+      hideTimeout = setTimeout(() => {
+        setIsVisible(false);
+        showTimeout = setTimeout(animate, 1500); // repeat every 5s
+      }, 3000); // visible for 2s (adjust as needed)
+    };
+    const initialTimeout = setTimeout(animate, delay);
+
+    return () => {
+      clearTimeout(showTimeout);
+      clearTimeout(hideTimeout);
+      clearTimeout(initialTimeout);
+    };
+  }, [delay, text]);
 
   return (
     <div className="overflow-hidden">
@@ -26,7 +37,11 @@ const TextReveal = ({ text, delay = 0 }) => {
             opacity: 1, 
             y: 0,
             filter: 'blur(0px)'
-          } : {}}
+          } : {
+            opacity: 0,
+            y: 50,
+            filter: 'blur(10px)'
+          }}
           transition={{
             duration: 0.8,
             delay: idx * 0.1,
@@ -49,15 +64,15 @@ const Section1 = ({ scrollYProgress }) => {
   return (
     <motion.section
       style={{ scale, rotate, opacity }}
-      className='sticky top-0 h-screen bg-black flex flex-col items-center justify-center text-white overflow-hidden font-montserrat'
+      className='sticky top-0 h-screen bg-white flex flex-col items-center justify-center text-black overflow-hidden font-montserrat'
     >
       {/* Gradient overlay */}
-      <div className='absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60'></div>
+      <div className='absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/80'></div>
 
       <div className='relative z-10 text-center px-8 max-w-6xl'>
 
 
-        <div className='2xl:text-8xl xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-black tracking-[-0.02em] leading-[0.9] uppercase'>
+        <div className='2xl:text-9xl xl:text-8xl lg:text-7xl md:text-5xl text-4xl font-black tracking-[-0.02em] leading-[0.9] uppercase'>
           <TextReveal text="RUNNING  OUT" delay={800} />
           <br />
           <TextReveal text="OF  EXCUSES" delay={1200} />
@@ -68,7 +83,7 @@ const Section1 = ({ scrollYProgress }) => {
       </div>
 
       {/* Ambient glow effect */}
-      <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl'></div>
+      <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-black/5 rounded-full blur-3xl'></div>
     </motion.section>
   );
 };
