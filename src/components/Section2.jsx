@@ -13,7 +13,7 @@ const Section2 = ({ scrollYProgress }) => {
 		>
 			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
 				<h1 className='text-4xl md:text-6xl leading-[100%] py-8 md:py-16 font-bold tracking-tighter uppercase font-montserrat'>
-					Every step Counts
+					Chasing Horizons
 				</h1>
 				<InfiniteGrid />
 			</article>

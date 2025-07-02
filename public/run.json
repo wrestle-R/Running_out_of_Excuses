@@ -1,0 +1,21 @@
+[
+  { "date": "2025-05-10", "distance_km": 3.0, "time": "19:42", "pace": "6:34/km", "elevation_m": 26, "description": "" },
+  { "date": "2025-05-14", "distance_km": 3.0, "time": "19:18", "pace": "6:26/km", "elevation_m": 21, "description": "" },
+  { "date": "2025-05-15", "distance_km": 3.0, "time": "17:50", "pace": "5:57/km", "elevation_m": 0, "description": "" },
+  { "date": "2025-05-16", "distance_km": 4.0, "time": "24:36", "pace": "6:09/km", "elevation_m": 21, "description": "" },
+  { "date": "2025-05-17", "distance_km": 4.0, "time": "31:28", "pace": "7:51/km", "elevation_m": 35, "description": "" },
+  { "date": "2025-05-30", "distance_km": 3.0, "time": "19:41", "pace": "6:34/km", "elevation_m": 26, "description": "" },
+  { "date": "2025-06-01", "distance_km": 3.0, "time": "18:38", "pace": "6:13/km", "elevation_m": 42, "description": "" },
+  { "date": "2025-06-03", "distance_km": 7.5, "time": "52:24", "pace": "6:59/km", "elevation_m": 28, "description": "" },
+  { "date": "2025-06-04", "distance_km": 7.0, "time": "48:37", "pace": "6:57/km", "elevation_m": 64, "description": "" },
+  { "date": "2025-06-07", "distance_km": 5.0, "time": "34:33", "pace": "6:58/km", "elevation_m": 46, "description": "" },
+  { "date": "2025-06-08", "distance_km": 5.0, "time": "31:37", "pace": "6:19/km", "elevation_m": 41, "description": "" },
+  { "date": "2025-06-09", "distance_km": 3.0, "time": "19:14", "pace": "6:24/km", "elevation_m": 11, "description": "" },
+  { "date": "2025-06-11", "distance_km": 5.0, "time": "33:03", "pace": "6:36/km", "elevation_m": 21, "description": "" },
+  { "date": "2025-06-12", "distance_km": 3.2, "time": "18:35", "pace": "5:49/km", "elevation_m": 5, "description": "" },
+  { "date": "2025-06-12", "distance_km": 12.24, "time": "2:40:00", "pace": "13:07/km", "elevation_m": 76, "description": "" },
+  { "date": "2025-06-21", "distance_km": 3.84, "time": "28:10", "pace": "7:33/km", "elevation_m": 9, "description": "" },
+  { "date": "2025-06-23", "distance_km": 5.03, "time": "37:53", "pace": "7:32/km", "elevation_m": 18, "description": "" },
+  { "date": "2025-06-25", "distance_km": 5.0, "time": "30:29", "pace": "6:10/km", "elevation_m": 39, "description": "" },
+  { "date": "2025-06-26", "distance_km": 1.0, "time": "4:16", "pace": "4:27/km", "elevation_m": 7, "description": "Needed to stretch my leg and see how fast I can run" }
+]
