@@ -63,19 +63,19 @@ const runningImages = [
   {
     id: 10,
     alt: "Morning Run 2",
-    src: "/1.jpg",
+    src: "/10.jpg",
     desc: "Another sunrise jog.",
   },
   {
     id: 11,
     alt: "Trail Adventure 2",
-    src: "/2.jpg",
+    src: "/11.jpg",
     desc: "Nature’s challenge.",
   },
   {
     id: 12,
     alt: "City Marathon 2",
-    src: "/3.jpg",
+    src: "/12.jpg",
     desc: "City streets await.",
   },
   {
