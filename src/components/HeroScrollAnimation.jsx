@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Section1 from './Section1';
 import Section2 from './Section2';
 import Section3 from './Section3';
+import { TimelineDemo } from '../pages/Timeline';
 
 const HeroScrollAnimation = () => {
   const container = useRef(null);
@@ -29,7 +30,8 @@ const HeroScrollAnimation = () => {
     <main ref={container} className='relative h-[200vh] bg-black'>
       <Section1 scrollYProgress={scrollYProgress} />
       <Section2 scrollYProgress={scrollYProgress} />
-      <Section3/>
+      {/* <Section3/> */}
+      <TimelineDemo />
       
       <footer className='bg-black border-t border-white/10'>
         <h1 className='text-[12vw] py-12 leading-[100%] uppercase font-bold text-center text-white tracking-tighter'>

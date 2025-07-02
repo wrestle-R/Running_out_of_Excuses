@@ -3,7 +3,7 @@ import { Timeline } from "../components/timeline-ui";
 
 // Only show the 3 longest runs from May and 3 from June, display images for both
 export function TimelineDemo() {
-  const [runs, setRuns] = useState([]);
+  const [runs, setRuns] = useState({ May: [], June: [] });
 
   useEffect(() => {
     fetch("/run.json")
@@ -28,7 +28,7 @@ export function TimelineDemo() {
   // Wait for runs to load
   if (!runs.May || !runs.June) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center text-gray-400">
+      <div className="w-full flex items-center justify-center text-gray-400 py-12">
         Loading...
       </div>
     );
@@ -127,10 +127,12 @@ export function TimelineDemo() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-black">
-      <div className="absolute top-0 left-0 w-full">
+    <div className="w-full bg-black py-8 px-2 md:px-8">
+      <div className="max-w-5xl mx-auto">
         <Timeline data={data} />
       </div>
     </div>
   );
 }
+
+export default TimelineDemo;
