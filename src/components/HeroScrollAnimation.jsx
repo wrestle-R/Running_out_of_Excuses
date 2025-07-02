@@ -17,7 +17,7 @@ const HeroScrollAnimation = () => {
       
       <footer className='bg-black border-t border-white/10'>
         <h1 className='text-[12vw] py-12 leading-[100%] uppercase font-bold text-center text-white tracking-tighter'>
-          26.2 Miles
+          42.195 km
         </h1>
         <div className='bg-white text-black h-32 grid place-content-center text-lg uppercase tracking-widest font-semibold'>
           Road to Marathon

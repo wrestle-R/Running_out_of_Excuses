@@ -1,9 +1,15 @@
 @import "tailwindcss";
-@import "@fontsource/montserrat/700.css";
+@import "@fontsource/montserrat";
+@import "@fontsource/montserrat/800.css";
+
 
 /* Add this to ensure Tailwind recognizes the font */
 @layer base {
   html {
     font-family: 'Montserrat', sans-serif;
+    background: #000; /* Set background to black */
+  }
+  body {
+    background: #000; /* Ensure body is also black */
   }
 }

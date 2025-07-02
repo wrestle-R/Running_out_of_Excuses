@@ -102,3 +102,4 @@ const Section2 = ({ scrollYProgress }) => {
 };
 
 export default Section2;
+    

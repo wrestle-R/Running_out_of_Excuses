@@ -12,6 +12,22 @@ const GalleryModal = ({
   mediaItems,
 }) => {
   const [dockPosition, setDockPosition] = useState({ x: 0, y: 0 });
+  const [aspect, setAspect] = useState("16/9");
+
+  // Dynamically determine aspect ratio for images
+  useEffect(() => {
+    if (!selectedItem || selectedItem.type !== "image") {
+      setAspect("16/9");
+      return;
+    }
+    const img = new window.Image();
+    img.src = selectedItem.url;
+    img.onload = () => {
+      if (img.naturalWidth && img.naturalHeight) {
+        setAspect(`${img.naturalWidth}/${img.naturalHeight}`);
+      }
+    };
+  }, [selectedItem]);
 
   if (!isOpen) return null;
 
@@ -35,7 +51,14 @@ const GalleryModal = ({
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedItem.id}
-                className="relative w-full aspect-[16/9] max-w-[95%] sm:max-w-[85%] md:max-w-3xl h-auto max-h-[70vh] rounded-lg overflow-hidden shadow-md"
+                className={`relative w-full max-w-[95%] sm:max-w-[85%] md:max-w-3xl h-auto max-h-[70vh] rounded-lg overflow-hidden shadow-md`}
+                style={{
+                  aspectRatio:
+                    selectedItem.type === "image" ? aspect : "16/9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
                 initial={{ y: 20, scale: 0.97 }}
                 animate={{
                   y: 0,
@@ -256,7 +279,7 @@ const InteractiveBentoGallery = ({
               <motion.div
                 key={item.id}
                 layoutId={`media-${item.id}`}
-                className={`relative overflow-hidden rounded-xl cursor-grab active:cursor-grabbing ${item.span} flex`}
+                className={`relative overflow-hidden rounded-xl cursor-grab active:cursor-grabbing ${item.span} flex scale-[.86]`}
                 style={{
                   zIndex: draggedIndex === index ? 50 : 1,
                 }}

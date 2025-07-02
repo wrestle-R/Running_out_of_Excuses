@@ -51,16 +51,13 @@ const Section1 = ({ scrollYProgress }) => {
       style={{ scale, rotate, opacity }}
       className='sticky top-0 h-screen bg-black flex flex-col items-center justify-center text-white overflow-hidden font-montserrat'
     >
-      {/* Subtle grid background */}
-      <div className='absolute inset-0 bg-[linear-gradient(to_right,#333333_1px,transparent_1px),linear-gradient(to_bottom,#333333_1px,transparent_1px)] bg-[size:100px_100px] opacity-20'></div>
-      
       {/* Gradient overlay */}
       <div className='absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60'></div>
 
       <div className='relative z-10 text-center px-8 max-w-6xl'>
 
 
-        <div className='2xl:text-8xl xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-light tracking-[-0.02em] leading-[0.9] uppercase'>
+        <div className='2xl:text-8xl xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-black tracking-[-0.02em] leading-[0.9] uppercase'>
           <TextReveal text="RUNNING  OUT" delay={800} />
           <br />
           <TextReveal text="OF  EXCUSES" delay={1200} />
