@@ -95,7 +95,7 @@ export const DraggableContainer = ({
         >
           <motion.div
             className={cn(
-              "grid h-fit w-fit cursor-grab grid-cols-[repeat(2,1fr)] bg- black active:cursor-grabbing will-change-transform",
+              "grid h-fit w-fit cursor-grab grid-cols-[repeat(2,1fr)] bg-black active:cursor-grabbing will-change-transform",
               className,
             )}
             drag
@@ -128,6 +128,7 @@ export const DraggableContainer = ({
 export const GridItem = ({
   children,
   className,
+  ...props
 }) => {
   const variant = useContext(GridVariantContext);
 
@@ -154,6 +155,7 @@ export const GridItem = ({
       variants={rowVariants}
       initial="initial"
       animate="animate"
+      {...props}
     >
       {children}
     </motion.div>

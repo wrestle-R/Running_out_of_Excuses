@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   GridBody,
   DraggableContainer,
@@ -10,108 +10,149 @@ const runningImages = [
     id: 1,
     alt: "Morning Run",
     src: "/1.jpg",
+    desc: "Early morning energy.",
   },
   {
     id: 2,
     alt: "Trail Adventure",
     src: "/2.jpg",
+    desc: "Exploring new trails.",
   },
   {
     id: 3,
     alt: "City Marathon",
     src: "/3.jpg",
+    desc: "Urban marathon vibes.",
   },
   {
     id: 4,
     alt: "Training Day",
     src: "/4.jpg",
+    desc: "Focused training session.",
   },
   {
     id: 5,
     alt: "Long Run",
     src: "/5.jpg",
+    desc: "Pushing the distance.",
   },
   {
     id: 6,
     alt: "Group Run",
     src: "/6.jpg",
+    desc: "Running with friends.",
   },
   {
     id: 7,
     alt: "Recovery",
     src: "/7.jpg",
+    desc: "Rest and recovery.",
   },
   {
     id: 8,
     alt: "Mountain Trail",
     src: "/8.jpg",
+    desc: "Up the mountain path.",
   },
   {
     id: 9,
     alt: "Victory Moment",
     src: "/9.jpg",
+    desc: "Crossing the finish line.",
   },
   {
     id: 10,
     alt: "Morning Run 2",
     src: "/1.jpg",
+    desc: "Another sunrise jog.",
   },
   {
     id: 11,
     alt: "Trail Adventure 2",
     src: "/2.jpg",
+    desc: "Nature’s challenge.",
   },
   {
     id: 12,
     alt: "City Marathon 2",
     src: "/3.jpg",
+    desc: "City streets await.",
   },
   {
     id: 13,
     alt: "Training Day 2",
     src: "/4.jpg",
+    desc: "Consistency is key.",
   },
   {
     id: 14,
     alt: "Long Run 2",
     src: "/5.jpg",
+    desc: "Endurance building.",
   },
   {
     id: 15,
     alt: "Group Run 2",
     src: "/6.jpg",
+    desc: "Teamwork in motion.",
   },
   {
     id: 16,
     alt: "Recovery 2",
     src: "/7.jpg",
+    desc: "Taking it easy.",
   },
   {
     id: 17,
     alt: "Mountain Trail 2",
     src: "/8.jpg",
+    desc: "Climbing higher.",
   },
   {
     id: 18,
     alt: "Victory Moment 2",
     src: "/9.jpg",
+    desc: "Celebrating success.",
   },
 ];
 
 const InfiniteGrid = () => {
+  const [hoveredId, setHoveredId] = useState(null);
+
+  const handleMouseEnter = (id) => {
+    setHoveredId(id);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredId(null);
+  };
+
   return (
     <DraggableContainer variant="masonry">
       <GridBody>
         {runningImages.map((image) => (
           <GridItem
             key={image.id}
-            className="relative h-54 w-36 md:h-96 md:w-64"
+            className={`relative h-54 w-36 md:h-96 md:w-64 transition-all duration-500 ease-out
+              ${hoveredId !== null && hoveredId !== image.id ? "blur-[2px] brightness-50 scale-95" : ""}
+              ${hoveredId === image.id ? "scale-110 z-30" : ""}
+            `}
+            onMouseEnter={() => handleMouseEnter(image.id)}
+            onMouseLeave={handleMouseLeave}
           >
             <img
               src={image.src}
               alt={image.alt}
-              className="pointer-events-none absolute h-full w-full object-cover"
+              className="pointer-events-none absolute h-full w-full object-cover rounded"
+              draggable={false}
             />
+            {hoveredId === image.id && (
+              <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent rounded transition-all duration-300">
+                <span className="text-white text-sm md:text-base font-medium p-3 md:p-4 text-center w-full">
+                  {image.desc}
+                </span>
+              </div>
+            )}
           </GridItem>
         ))}
       </GridBody>

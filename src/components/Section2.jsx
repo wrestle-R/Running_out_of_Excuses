@@ -9,11 +9,11 @@ const Section2 = ({ scrollYProgress }) => {
 	return (
 		<motion.section
 			style={{ scale, rotate }}
-			className='relative min-h-screen bg-black text-white font-montserrat pb-20'
+			className='relative min-h-screen bg-black text-white font-montserrat pb-20 flex items-center justify-center overflow-x-hidden'
 		>
-			<article className='container mx-auto relative z-10 px-8'>
+			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
 				<h1 className='text-4xl md:text-6xl leading-[100%] py-8 md:py-16 font-bold tracking-tighter uppercase font-montserrat'>
-					Every step <br /> Counts
+					Every step Counts
 				</h1>
 				<InfiniteGrid />
 			</article>
@@ -22,4 +22,3 @@ const Section2 = ({ scrollYProgress }) => {
 };
 
 export default Section2;
-		
