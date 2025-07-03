@@ -68,7 +68,7 @@ export function TimelineDemo() {
     {
       title: (
         <div className="flex flex-col gap-1">
-          <div className="text-4xl md:text-5xl pb-8 font-extrabold text-white tracking-tight">
+          <div className="text-4xl md:text-5xl pb-8 font-bold text-white tracking-tight">
             May 2025
           </div>
           <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
@@ -98,7 +98,7 @@ export function TimelineDemo() {
                 src={src}
                 alt={`Run May ${idx + 1}`}
                 className="rounded-xl h-40 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition"
-                style={{ objectFit: "cover", maxWidth: "33.33%" }}
+                style={{ objectFit: "contain", height: "12rem" }}
               />
             ))}
           </div>
@@ -108,7 +108,7 @@ export function TimelineDemo() {
     {
       title: (
         <div className="flex flex-col gap-1">
-          <div className="text-4xl md:text-5xl pb-8 font-extrabold text-white tracking-tight">
+          <div className="text-4xl md:text-5xl pb-8 font-bold text-white tracking-tight">
             June 2025
           </div>
           <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
@@ -138,7 +138,7 @@ export function TimelineDemo() {
                 src={src}
                 alt={`Run June ${idx + 1}`}
                 className="rounded-xl h-40 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition"
-                style={{ objectFit: "cover", maxWidth: "33.33%" }}
+                style={{ objectFit: "contain", height: "12rem" }}
               />
             ))}
           </div>

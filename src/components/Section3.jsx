@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Footprints } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import runnyBlack from "/runny-black-nobg.png";
 import runnyWhite from "/runny-white-nobg.png";
 
@@ -63,6 +64,7 @@ function isWalk(pace) {
 
 export default function Section3() {
   const [runs, setRuns] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("/run.json")
@@ -81,8 +83,16 @@ export default function Section3() {
   const totalRuns = runs.length;
 
   return (
-    <section className="py-12 pb-24 px-2 md:px-8 bg-black text-white font-montserrat min-h-[60vh] flex flex-col items-center">
-      <h2 className="text-4xl md:text-6xl leading-[100%] py-8 md:py-16 font-bold tracking-tighter uppercase font-montserrat text-center">
+    <section className="py-12 pb-8 px-2 md:px-8 bg-black text-white font-montserrat min-h-[60vh] flex flex-col items-center">
+      <div className="w-full max-w-7xl flex justify-between items-center mb-8">
+        <button
+        className="mb-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur self-start"
+        onClick={() => navigate("/")}
+      >
+        ← Back to Home
+      </button>
+      </div>
+      <h2 className="text-4xl md:text-6xl leading-[100%] pb-24 font-bold tracking-tighter uppercase font-montserrat text-center">
         Every Step Counts
       </h2>
       <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full max-w-7xl">
@@ -156,4 +166,3 @@ export default function Section3() {
     </section>
   );
 }
-           
