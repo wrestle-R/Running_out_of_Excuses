@@ -68,13 +68,13 @@ export function TimelineDemo() {
     {
       title: (
         <div className="flex flex-col gap-1">
-          <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-4xl md:text-5xl pb-8 font-extrabold text-white tracking-tight">
             May 2025
           </div>
           <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
             {monthDescriptions["May 2025"]}
           </div>
-          <div className="flex gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1">
+          <div className="inline-flex w-[60%] gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-4 py-2 shadow-inner">
             <span>
               <span className="text-white font-bold">{mayTotalRuns}</span> runs
             </span>
@@ -83,7 +83,7 @@ export function TimelineDemo() {
               <span className="text-white font-bold">{mayTotalDistance.toFixed(2)}</span> km
             </span>
           </div>
-          <div className="text-xs text-gray-400 italic mt-1">
+          <div className="text-sm text-gray-400 mt-1">
             <span className="font-bold text-white">Challenge:</span> I had a hairline fracture on my left foot, so I had to slow down.
           </div>
         </div>
@@ -108,13 +108,13 @@ export function TimelineDemo() {
     {
       title: (
         <div className="flex flex-col gap-1">
-          <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-4xl md:text-5xl pb-8 font-extrabold text-white tracking-tight">
             June 2025
           </div>
           <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
             {monthDescriptions["June 2025"]}
           </div>
-          <div className="flex gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1">
+          <div className="inline-flex w-[60%] gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-4 py-2 shadow-inner">
             <span>
               <span className="text-white font-bold">{juneTotalRuns}</span> runs
             </span>
