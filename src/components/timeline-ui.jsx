@@ -54,7 +54,7 @@ export const Timeline = ({ data }) => {
     >
       <div className="max-w-7xl mx-auto text-center px-4 md:px-8 lg:px-10 align-center">
         <h2 className="text-4xl md:text-6xl leading-[100%] pt-20 font-bold tracking-tighter uppercase font-montserrat">
-          mah journey
+          mah journey 
         </h2>
         
       </div>

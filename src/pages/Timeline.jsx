@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Timeline } from "../components/timeline-ui";
+import { useNavigate } from "react-router-dom";
 
 // Only show the 3 longest runs from May and 3 from June, display images for both
 export function TimelineDemo() {
   const [runs, setRuns] = useState({ May: [], June: [] });
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("/run.json")
@@ -52,7 +54,7 @@ export function TimelineDemo() {
 
   // Add a description for each month
   const monthDescriptions = {
-    "May 2025": "Just Started Running, love seeing new places and feeling of just after I finish a run",
+    "May 2025": "Just Started Running, love seeing new places and feeling of accomplishment just after I finish a run",
     "June 2025": "Started Running a little more, really started enjoying for the first time",
   };
 
@@ -148,8 +150,14 @@ export function TimelineDemo() {
 
   return (
     <div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 px-2 md:px-8 font-montserrat">
-      <div className="max-w-5xl mx-auto flex justify-center">
+      <div className="max-w-5xl mx-auto flex flex-col items-center justify-center">
         <Timeline data={data} />
+        <button
+          className="mt-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur"
+          onClick={() => navigate("/runs")}
+        >
+          View All Runs →
+        </button>
       </div>
     </div>
   );
