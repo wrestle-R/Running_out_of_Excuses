@@ -32,9 +32,9 @@ const runningImages = [
   },
   {
     id: 5,
-    alt: "Long Run",
+    alt: "Blue hour",
     src: "/5.jpg",
-    desc: "Pushing the distance.",
+    desc: "The BLUE hour.",
   },
   {
     id: 6,

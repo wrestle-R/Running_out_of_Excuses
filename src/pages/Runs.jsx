@@ -117,8 +117,8 @@ export default function Section3() {
                       src={runnyBlack}
                       alt="Run"
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 50,
+                        height: 50,
                         objectFit: "contain",
                         display: "block",
                       }}
