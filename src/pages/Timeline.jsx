@@ -148,7 +148,7 @@ export function TimelineDemo() {
 
   return (
     <div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 px-2 md:px-8 font-montserrat">
-      <div className="max-w-5xl mx-auto rounded-3xl bg-black/70 shadow-2xl p-4 md:p-10 border border-white/10">
+      <div className="max-w-5xl mx-auto flex justify-center">
         <Timeline data={data} />
       </div>
     </div>
