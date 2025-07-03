@@ -1,7 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
-import Section3 from './components/Section3'
+import Section3 from './pages/Runs'
 
 const App = () => {
   return (

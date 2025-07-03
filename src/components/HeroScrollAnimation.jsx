@@ -2,8 +2,8 @@ import { useScroll } from 'motion/react';
 import React, { useRef, useEffect, useState } from 'react';
 import Section1 from './Section1';
 import Section2 from './Section2';
-import Section3 from './Section3';
-import { TimelineDemo } from '../pages/Timeline';
+import Section3 from '../pages/Runs';
+import { TimelineDemo } from './Section3';
 
 const HeroScrollAnimation = () => {
   const container = useRef(null);
