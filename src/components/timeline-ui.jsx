@@ -16,14 +16,35 @@ export const Timeline = ({ data }) => {
       const rect = ref.current.getBoundingClientRect();
       setHeight(rect.height);
     }
-  }, [ref]);
+  }, [ref, data]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 10%", "end 50%"],
   });
 
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
+  // Only animate the tracking line up to the last timeline item (ball)
+  // The last ball should always be "lit" and the line should not go past it.
+  // We'll calculate the height up to the last item.
+  const lastBallRef = useRef(null);
+  const [lastBallOffset, setLastBallOffset] = useState(0);
+
+  useEffect(() => {
+    if (lastBallRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const lastBallRect = lastBallRef.current.getBoundingClientRect();
+      setLastBallOffset(
+        lastBallRect.top + lastBallRect.height / 2 - containerRect.top
+      );
+    }
+  }, [data, (mayBeRerender) => mayBeRerender]); // force recalc on data change
+
+  // The tracking line should not exceed lastBallOffset
+  const heightTransform = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [0, lastBallOffset || height]
+  );
   const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
 
   return (
@@ -31,11 +52,14 @@ export const Timeline = ({ data }) => {
       className="w-full min-h-screen bg-black font-sans md:px-10"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-10 align-text-center">
-        <h2 className="text-4xl md:text-6xl leading-[100%] font-bold tracking-tighter uppercase font-montserrat">
-          MAH JOURNEY
+      <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10">
+        <h2 className="text-lg md:text-4xl mb-4 text-white max-w-4xl">
+          Changelog from my journey
         </h2>
-        
+        <p className="text-gray-300 text-sm md:text-base max-w-sm">
+          I&apos;ve been working on Aceternity for the past 2 years. Here&apos;s
+          a timeline of my journey.
+        </p>
       </div>
 
       <div ref={ref} className="relative max-w-7xl mx-auto pb-20">
@@ -44,7 +68,10 @@ export const Timeline = ({ data }) => {
             key={index}
             className="flex justify-start pt-10 md:pt-40 md:gap-10"
           >
-            <div className="sticky flex flex-col md:flex-row z-40 items-center top-40 self-start max-w-xs lg:max-w-sm md:w-full">
+            <div
+              className="sticky flex flex-col md:flex-row z-40 items-center top-40 self-start max-w-xs lg:max-w-sm md:w-full"
+              ref={index === data.length - 1 ? lastBallRef : undefined}
+            >
               <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-black flex items-center justify-center">
                 <div className="h-4 w-4 rounded-full bg-neutral-800 border border-neutral-700 p-2" />
               </div>

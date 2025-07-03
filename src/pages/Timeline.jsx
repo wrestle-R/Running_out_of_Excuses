@@ -17,16 +17,29 @@ export function TimelineDemo() {
           if (month === "May") byMonth.May.push(run);
           if (month === "June") byMonth.June.push(run);
         });
-        // Sort and keep top 3 for each month
-        const mayTop = byMonth.May.sort((a, b) => b.distance_km - a.distance_km).slice(0, 3);
-        const juneTop = byMonth.June.sort((a, b) => b.distance_km - a.distance_km).slice(0, 3);
-        setRuns({ May: mayTop, June: juneTop });
+        // Sort and keep top 3 for each month for display, but keep all for stats
+        setRuns({
+          May: {
+            all: byMonth.May,
+            top: byMonth.May.slice().sort((a, b) => b.distance_km - a.distance_km).slice(0, 3),
+          },
+          June: {
+            all: byMonth.June,
+            top: byMonth.June.slice().sort((a, b) => b.distance_km - a.distance_km).slice(0, 3),
+          },
+        });
       })
-      .catch(() => setRuns({ May: [], June: [] }));
+      .catch(() => setRuns({
+        May: { all: [], top: [] },
+        June: { all: [], top: [] },
+      }));
   }, []);
 
   // Wait for runs to load
-  if (!runs.May || !runs.June) {
+  const mayReady = runs.May && Array.isArray(runs.May.all) && Array.isArray(runs.May.top);
+  const juneReady = runs.June && Array.isArray(runs.June.all) && Array.isArray(runs.June.top);
+
+  if (!mayReady || !juneReady) {
     return (
       <div className="w-full flex items-center justify-center text-gray-400 py-12">
         Loading...
@@ -39,45 +52,51 @@ export function TimelineDemo() {
 
   // Add a description for each month
   const monthDescriptions = {
-    "May 2025": "The beginning of the journey. First steps, new motivation, and the excitement of starting out.",
-    "June 2025": "Building consistency and pushing limits. Longer runs, new records, and memorable moments.",
+    "May 2025": "Just Started Running, love seeing new places and feeling of just after I finish a run",
+    "June 2025": "Started Running a little more, really started enjoying for the first time",
   };
+
+  // Calculate stats for each month
+  const mayTotalRuns = (runs.May.all || []).length;
+  const mayTotalDistance = (runs.May.all || []).reduce((sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0), 0);
+  const juneTotalRuns = (runs.June.all || []).length;
+  const juneTotalDistance = (runs.June.all || []).reduce((sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0), 0);
 
   const data = [
     {
       title: (
-        <div>
-          <div className="text-2xl font-bold">May 2025</div>
-          <div className="text-sm text-gray-400 mb-2">{monthDescriptions["May 2025"]}</div>
+        <div className="flex flex-col gap-1">
+          <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            May 2025
+          </div>
+          <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
+            {monthDescriptions["May 2025"]}
+          </div>
+          <div className="flex gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1">
+            <span>
+              <span className="text-white font-bold">{mayTotalRuns}</span> runs
+            </span>
+            <span className="opacity-60">|</span>
+            <span>
+              <span className="text-white font-bold">{mayTotalDistance.toFixed(2)}</span> km
+            </span>
+          </div>
+          <div className="text-xs text-gray-400 italic mt-1">
+            <span className="font-bold text-white">Challenge:</span> I had a hairline fracture on my left foot, so I had to slow down.
+          </div>
         </div>
       ),
       content: (
         <div>
-          {runs.May.length ? (
-            <ul className="mb-4">
-              {runs.May.map((run, idx) => (
-                <li key={idx} className="mb-2">
-                  <span className="font-bold">{run.date}:</span>{" "}
-                  <span>{run.distance_km} km</span>
-                  {run.description && (
-                    <span className="ml-2 text-gray-500 italic">
-                      {run.description}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-gray-400 italic mb-4">No runs this month.</div>
-          )}
-          <div className="flex flex-row mt-4 gap-4">
+          {/* Removed top 3 runs list */}
+          <div className="flex flex-row mt-4 gap-4 justify-center">
             {mayImages.map((src, idx) => (
               <img
                 key={src}
                 src={src}
                 alt={`Run May ${idx + 1}`}
-                className="rounded-lg h-48 w-auto"
-                style={{ objectFit: "contain", maxWidth: "33.33%" }}
+                className="rounded-xl h-40 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition"
+                style={{ objectFit: "cover", maxWidth: "33.33%" }}
               />
             ))}
           </div>
@@ -86,49 +105,50 @@ export function TimelineDemo() {
     },
     {
       title: (
-        <div>
-          <div className="text-2xl font-bold">June 2025</div>
-          <div className="text-sm text-gray-400 mb-2">{monthDescriptions["June 2025"]}</div>
+        <div className="flex flex-col gap-1">
+          <div className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            June 2025
+          </div>
+          <div className="text-sm md:text-base text-gray-300 mb-1 font-medium italic">
+            {monthDescriptions["June 2025"]}
+          </div>
+          <div className="flex gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1">
+            <span>
+              <span className="text-white font-bold">{juneTotalRuns}</span> runs
+            </span>
+            <span className="opacity-60">|</span>
+            <span>
+              <span className="text-white font-bold">{juneTotalDistance.toFixed(2)}</span> km
+            </span>
+          </div>
+          <div className="text-xs text-gray-400 italic mt-1">
+            <span className="font-bold text-white">Challenge:</span> I was in my gav so couldn't run and fell sick every second week.
+          </div>
         </div>
       ),
       content: (
         <div>
-          {runs.June.length ? (
-            <ul className="mb-4">
-              {runs.June.map((run, idx) => (
-                <li key={idx} className="mb-2">
-                  <span className="font-bold">{run.date}:</span>{" "}
-                  <span>{run.distance_km} km</span>
-                  {run.description && (
-                    <span className="ml-2 text-gray-500 italic">
-                      {run.description}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-gray-400 italic mb-4">No runs this month.</div>
-          )}
-          <div className="flex flex-row mt-4 gap-4">
+          {/* Removed top 3 runs list */}
+          <div className="flex flex-row mt-4 gap-4 justify-center">
             {juneImages.map((src, idx) => (
               <img
                 key={src}
                 src={src}
                 alt={`Run June ${idx + 1}`}
-                className="rounded-lg h-48 w-auto"
-                style={{ objectFit: "contain", maxWidth: "33.33%" }}
+                className="rounded-xl h-40 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition"
+                style={{ objectFit: "cover", maxWidth: "33.33%" }}
               />
             ))}
           </div>
         </div>
       ),
     },
+    
   ];
 
   return (
-    <div className="w-full bg-black py-8 px-2 md:px-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 px-2 md:px-8 font-montserrat">
+      <div className="max-w-5xl mx-auto rounded-3xl bg-black/70 shadow-2xl p-4 md:p-10 border border-white/10">
         <Timeline data={data} />
       </div>
     </div>
