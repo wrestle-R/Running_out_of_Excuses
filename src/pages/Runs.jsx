@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Footprints } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { collection, getDocs, setDoc, doc, query, orderBy } from 'firebase/firestore';
+import { db } from '../../firebase.config.js';
 import runnyBlack from "/runny-black-nobg.png";
 import runnyWhite from "/runny-white-nobg.png";
 
@@ -46,33 +48,148 @@ const CardCurtainRevealDescription = ({ children, className, isHovered }) => {
 };
 
 function paceToSpeed(pace) {
-  // pace: "min:sec/km" => speed in km/h
-  const [min, rest] = pace.split(":");
-  const [sec] = rest.split("/"); // remove "/km"
-  const totalMin = parseInt(min, 10) + parseInt(sec, 10) / 60;
-  if (!totalMin) return 0;
-  return +(60 / totalMin).toFixed(2);
+  // Handle both formats: "5.5" and "5:30/km"
+  if (typeof pace === 'string' && pace.includes(':')) {
+    const [min, rest] = pace.split(":");
+    const [sec] = rest.split("/");
+    const totalMin = parseInt(min, 10) + parseInt(sec, 10) / 60;
+    if (!totalMin) return 0;
+    return +(60 / totalMin).toFixed(2);
+  }
+  // Handle decimal format
+  const paceNum = parseFloat(pace);
+  return paceNum ? +(60 / paceNum).toFixed(2) : 0;
 }
 
 function isWalk(pace) {
-  // pace: "min:sec/km"
-  const [min, rest] = pace.split(":");
-  const [sec] = rest.split("/"); // remove "/km"
-  const totalSec = parseInt(min, 10) * 60 + parseInt(sec, 10);
-  return totalSec >= 600; // 10:00/km or slower
+  // Handle both formats: "5.5" and "5:30/km"
+  if (typeof pace === 'string' && pace.includes(':')) {
+    const [min, rest] = pace.split(":");
+    const [sec] = rest.split("/");
+    const totalSec = parseInt(min, 10) * 60 + parseInt(sec, 10);
+    return totalSec >= 600; // 10:00/km or slower
+  }
+  // Handle decimal format
+  const paceNum = parseFloat(pace);
+  return paceNum >= 10; // 10 min/km or slower
 }
+
+function formatPace(pace) {
+  if (typeof pace === 'string' && pace.includes(':')) {
+    return pace;
+  }
+  const paceNum = parseFloat(pace);
+  if (!paceNum) return 'N/A';
+  const minutes = Math.floor(paceNum);
+  const seconds = Math.round((paceNum - minutes) * 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+}
+
+const saveActivitiesToFirebase = async (activities) => {
+  try {
+    const promises = activities.map(async (activity, index) => {
+      const activityId = `activity_${new Date(activity.date).getTime()}_${index}`;
+      await setDoc(doc(db, 'strava_activities', activityId), {
+        ...activity,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    });
+    await Promise.all(promises);
+    console.log('✅ Activities saved to Firebase');
+  } catch (error) {
+    console.error('Error saving to Firebase:', error);
+  }
+};
+
+const loadActivitiesFromFirebase = async () => {
+  try {
+    const q = query(collection(db, 'strava_activities'), orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const firebaseActivities = [];
+    querySnapshot.forEach((doc) => {
+      firebaseActivities.push(doc.data());
+    });
+    return firebaseActivities;
+  } catch (error) {
+    console.error('Error loading from Firebase:', error);
+    return [];
+  }
+};
 
 export default function Section3() {
   const [runs, setRuns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dataSource, setDataSource] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("/run.json")
-      .then((res) => res.json())
-      .then(setRuns)
-      .catch(() => {
-        // No fallback data
-      });
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Fetching from backend...');
+        
+        // Try to fetch from backend first
+        const res = await fetch('http://localhost:3000/api/activities', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log('Backend response status:', res.status);
+        
+        if (res.status === 401) {
+          // On 401, load from Firebase
+          console.log('API rate limited, loading from Firebase...');
+          setDataSource('Firebase (API rate limited)');
+          const firebaseData = await loadActivitiesFromFirebase();
+          setRuns(firebaseData);
+          return;
+        }
+        
+        if (!res.ok) {
+          throw new Error(`Backend API Error: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('Backend data received:', data.length, 'activities');
+        
+        // Transform data to match expected format
+        const transformedData = data.map(activity => ({
+          name: activity.name,
+          date: activity.date,
+          distance_km: parseFloat(activity.distance_km),
+          pace: formatPace(activity.pace_min_per_km),
+          description: activity.description || 'No description',
+          elapsed_time_min: activity.elapsed_time_min,
+          splits: activity.splits || []
+        }));
+        
+        setRuns(transformedData);
+        setDataSource('Strava API');
+        
+        // Save fresh data to Firebase for future use
+        await saveActivitiesToFirebase(transformedData);
+        
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(err.message);
+        
+        // Fallback to Firebase on any error
+        console.log('Error occurred, loading from Firebase...');
+        setDataSource('Firebase (fallback)');
+        const firebaseData = await loadActivitiesFromFirebase();
+        setRuns(firebaseData);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchActivities();
   }, []);
 
   // Calculate total distance
@@ -86,23 +203,47 @@ export default function Section3() {
     <section className="py-12 pb-8 px-2 md:px-8 bg-black text-white font-montserrat min-h-[60vh] flex flex-col items-center">
       <div className="w-full max-w-7xl flex justify-between items-center mb-8">
         <button
-        className="mb-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur self-start"
-        onClick={() => navigate("/")}
-      >
-        ← Back to Home
-      </button>
+          className="mb-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur self-start"
+          onClick={() => navigate("/")}
+        >
+          ← Back to Home
+        </button>
       </div>
-      <h2 className="text-4xl md:text-6xl leading-[100%] pb-24 font-bold tracking-tighter uppercase font-montserrat text-center">
+      
+      <h2 className="text-4xl md:text-6xl leading-[100%] pb-8 font-bold tracking-tighter uppercase font-montserrat text-center">
         Every Step Counts
       </h2>
+      
+      {dataSource && (
+        <p className="text-white/60 text-sm mb-8 text-center">
+          Data source: {dataSource}
+        </p>
+      )}
+      
+      {loading && (
+        <div className="text-center text-lg text-white/80 mb-8">
+          Loading activities...
+        </div>
+      )}
+      
+      {error && !loading && runs.length === 0 && (
+        <div className="text-center text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-8">
+          {error}
+        </div>
+      )}
+      
+      {!loading && runs.length === 0 && (
+        <div className="text-center text-white/60 mb-8">
+          No activities found.
+        </div>
+      )}
+      
       <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full max-w-7xl">
         {runs.map((run, idx) => {
           const speed = paceToSpeed(run.pace);
           const walk = isWalk(run.pace);
-          const desc =
-            run.description && run.description.trim().length > 0
-              ? run.description
-              : null;
+          const desc = run.description && run.description.trim().length > 0 ? run.description : null;
+          
           return (
             <CardCurtainReveal
               key={idx}
@@ -150,7 +291,7 @@ export default function Section3() {
                           display: "block",
                         }}
                       />
-                      Run
+                      {run.name || 'Run'}
                     </span>
                   )}
                 </div>
