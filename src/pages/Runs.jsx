@@ -6,13 +6,15 @@ import { db } from '../../firebase.config.js';
 import runnyBlack from "/runny-black-nobg.png";
 import runnyWhite from "/runny-white-nobg.png";
 
-// Simple CardCurtainReveal components (black and white themed)
+// Improved CardCurtainReveal components
 const CardCurtainReveal = ({ children, className }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className={`relative overflow-hidden cursor-pointer ${className}`}
+      className={`relative overflow-hidden rounded-xl shadow-lg transform transition-all duration-300 ${
+        isHovered ? "scale-[1.03] shadow-xl z-10" : ""
+      } ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -26,7 +28,7 @@ const CardCurtainReveal = ({ children, className }) => {
 const CardCurtainRevealBody = ({ children, className, isHovered }) => {
   return (
     <div
-      className={`transition-all duration-300 ${
+      className={`transition-all duration-300 ease-in-out ${
         isHovered ? "opacity-0" : "opacity-100"
       } ${className}`}
     >
@@ -38,8 +40,8 @@ const CardCurtainRevealBody = ({ children, className, isHovered }) => {
 const CardCurtainRevealDescription = ({ children, className, isHovered }) => {
   return (
     <div
-      className={`transition-all duration-300 ${
-        isHovered ? "opacity-100" : "opacity-0"
+      className={`absolute inset-0 transition-all duration-300 ease-in-out transform ${
+        isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       } ${className}`}
     >
       {children}
@@ -83,6 +85,20 @@ function formatPace(pace) {
   const minutes = Math.floor(paceNum);
   const seconds = Math.round((paceNum - minutes) * 60);
   return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+}
+
+function formatTime(minutes) {
+  const mins = Math.floor(parseFloat(minutes));
+  const secs = Math.round((parseFloat(minutes) - mins) * 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatSplitPace(pace) {
+  const paceNum = parseFloat(pace);
+  if (!paceNum) return 'N/A';
+  const minutes = Math.floor(paceNum);
+  const seconds = Math.round((paceNum - minutes) * 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 const saveActivitiesToFirebase = async (activities) => {
@@ -200,110 +216,189 @@ export default function Section3() {
   const totalRuns = runs.length;
 
   return (
-    <section className="py-12 pb-8 px-2 md:px-8 bg-black text-white font-montserrat min-h-[60vh] flex flex-col items-center">
-      <div className="w-full max-w-7xl flex justify-between items-center mb-8">
-        <button
-          className="mb-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur self-start"
-          onClick={() => navigate("/")}
-        >
-          ← Back to Home
-        </button>
-      </div>
-      
-      <h2 className="text-4xl md:text-6xl leading-[100%] pb-8 font-bold tracking-tighter uppercase font-montserrat text-center">
-        Every Step Counts
-      </h2>
-      
-      {dataSource && (
-        <p className="text-white/60 text-sm mb-8 text-center">
-          Data source: {dataSource}
-        </p>
-      )}
-      
-      {loading && (
-        <div className="text-center text-lg text-white/80 mb-8">
-          Loading activities...
-        </div>
-      )}
-      
-      {error && !loading && runs.length === 0 && (
-        <div className="text-center text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-8">
-          {error}
-        </div>
-      )}
-      
-      {!loading && runs.length === 0 && (
-        <div className="text-center text-white/60 mb-8">
-          No activities found.
-        </div>
-      )}
-      
-      <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full max-w-7xl">
-        {runs.map((run, idx) => {
-          const speed = paceToSpeed(run.pace);
-          const walk = isWalk(run.pace);
-          const desc = run.description && run.description.trim().length > 0 ? run.description : null;
+    <section className="py-16 px-4 md:px-8 bg-black text-white font-montserrat min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+          <button
+            className="mb-6 md:mb-0 px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all duration-200 border border-white/10 backdrop-blur-sm flex items-center gap-2"
+            onClick={() => navigate("/")}
+          >
+            <span>←</span> Back to Home
+          </button>
           
-          return (
-            <CardCurtainReveal
-              key={idx}
-              className="rounded-3xl shadow-xl bg-white border-0 hover:scale-105 hover:shadow-2xl transition-all duration-300"
-            >
-              <CardCurtainRevealBody className="flex flex-col items-center justify-center min-h-[160px] relative">
-                <div className="absolute top-4 left-4 text-black">
-                  {walk ? (
-                    <Footprints size={32} />
-                  ) : (
-                    <img
-                      src={runnyBlack}
-                      alt="Run"
-                      style={{
-                        width: 50,
-                        height: 50,
-                        objectFit: "contain",
-                        display: "block",
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="font-semibold text-lg text-black mb-1">
-                  {run.date}
-                </div>
-                <div className="font-black text-4xl text-black mb-2">
-                  {run.distance_km} km
-                </div>
-              </CardCurtainRevealBody>
-              <CardCurtainRevealDescription className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white font-semibold text-lg px-4 text-center rounded-3xl">
-                <div>
-                  {walk ? (
-                    <span className="flex items-center gap-2 justify-center mb-2 text-white">
-                      <Footprints size={22} /> Walk
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2 justify-center mb-2 text-white">
-                      <img
-                        src={runnyWhite}
-                        alt="Run"
-                        style={{
-                          width: 24,
-                          height: 24,
-                          objectFit: "contain",
-                          display: "block",
-                        }}
-                      />
+          <div className="flex flex-col items-end">
+            <div className="flex gap-3 text-sm text-white/60">
+              <span>Total Runs: <span className="font-bold text-white">{totalRuns}</span></span>
+              <span>·</span>
+              <span>Total Distance: <span className="font-bold text-white">{totalDistance.toFixed(1)} km</span></span>
+            </div>
+            {dataSource && (
+              <p className="text-white/50 text-xs mt-1">
+                Source: {dataSource}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
+          Every Step <span className="text-white/80">Counts</span>
+        </h2>
+        
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-pulse flex flex-col items-center">
+              <div className="h-8 w-40 bg-white/10 rounded mb-4"></div>
+              <div className="h-4 w-60 bg-white/10 rounded"></div>
+            </div>
+          </div>
+        )}
+        
+        {error && !loading && runs.length === 0 && (
+          <div className="mx-auto max-w-lg text-center text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-6 mb-12">
+            <p className="font-medium mb-2">Unable to load activities</p>
+            <p className="text-sm opacity-80">{error}</p>
+          </div>
+        )}
+        
+        {!loading && runs.length === 0 && !error && (
+          <div className="text-center py-20">
+            <p className="text-xl text-white/60">No activities found.</p>
+          </div>
+        )}
+        
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {runs.map((run, idx) => {
+            const speed = paceToSpeed(run.pace);
+            const walk = isWalk(run.pace);
+            const desc = run.description && run.description.trim().length > 0 ? run.description : null;
+            const hasSplits = run.splits && run.splits.length > 0;
+            const splitCount = hasSplits ? run.splits.length : 0;
+            
+            return (
+              <CardCurtainReveal
+                key={idx}
+                className="cursor-pointer bg-gradient-to-br from-white to-gray-100 border border-white/10"
+              >
+                <CardCurtainRevealBody className="pt-5 px-8 flex flex-col h-[260px] overflow-x-hidden w-full max-w-full">
+                  <div className="flex justify-between items-start w-full">
+                    <div className="flex-shrink-0" style={{ marginTop: '-14px' }}>
+                      {walk ? (
+                        <Footprints size={36} className="text-gray-800" />
+                      ) : (
+                        <img
+                          src={runnyBlack}
+                          alt="Run"
+                          style={{ width: 60, height: 60, objectFit: "contain" }}
+                          className="opacity-90"
+                        />
+                      )}
+                    </div>
+                    <span className="text-base font-semibold text-gray-500 truncate max-w-[120px] text-right">{run.date}</span>
+                  </div>
+                  
+                  <div className="flex flex-col flex-grow pb-10 justify-center items-center w-full">
+                    <h3 className="text-gray-700  text-2xl font-extrabold mb-3 text-center w-full max-w-full tracking-tight break-words whitespace-normal">
                       {run.name || 'Run'}
-                    </span>
+                    </h3>
+                    <div className="flex items-end gap-2 justify-center w-full">
+                      <span className="text-6xl font-extrabold text-black leading-none drop-shadow-sm">{run.distance_km}</span>
+                      <span className="text-gray-500 font-semibold text-2xl mb-1">km</span>
+                    </div>
+                  </div>
+                </CardCurtainRevealBody>
+                
+                <CardCurtainRevealDescription className="bg-black text-white p-6 overflow-auto custom-scrollbar w-full max-w-full">
+                  <div className="flex items-center justify-between mb-5 w-full">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {walk ? (
+                        <Footprints size={20} className="text-white/90" />
+                      ) : (
+                        <img
+                          src={runnyWhite}
+                          alt="Run"
+                          style={{ width: 22, height: 22, objectFit: "contain" }}
+                        />
+                      )}
+                      <span className="font-bold truncate text-lg max-w-[140px]">{run.name || 'Run'}</span>
+                    </div>
+                    <span className="text-xs text-white/60 font-medium truncate max-w-[90px] text-right">{run.date}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6 w-full">
+                    <div>
+                      <div className="text-white/50 text-xs uppercase mb-1">Distance</div>
+                      <div className="text-xl font-bold">{run.distance_km} km</div>
+                    </div>
+                    <div>
+                      <div className="text-white/50 text-xs uppercase mb-1">Pace</div>
+                      <div className="text-xl font-bold">{run.pace}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/50 text-xs uppercase mb-1">Time</div>
+                      <div className="text-xl font-bold">{formatTime(run.elapsed_time_min)}</div>
+                    </div>
+                  </div>
+                  
+                  {hasSplits && (
+                    <div className="mb-6 w-full">
+                      <div className="flex justify-between items-center mb-3 w-full">
+                        <div className="text-white/50 text-xs uppercase">Kilometer Splits</div>
+                        <div className="text-xs text-white/40 font-medium">{splitCount} splits</div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 w-full">
+                        {run.splits.map((split, i) => (
+                          <div
+                            key={i}
+                            className={`flex justify-between items-center px-3 py-1.5 rounded-md text-sm ${
+                              i % 2 === 0 ? 'bg-white/10' : 'bg-white/5'
+                            } w-full`}
+                          >
+                            <span className="font-medium">KM {split.km}</span>
+                            <span className="font-bold">{formatSplitPace(split.pace_min_per_km)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div className="text-2xl font-bold mb-1 text-white">
-                  {run.pace}
-                </div>
-                {desc && <div className="text-base text-white">{desc}</div>}
-              </CardCurtainRevealDescription>
-            </CardCurtainReveal>
-          );
-        })}
+                  
+                  {desc && desc !== "No description 😶" && (
+                    <div className="mt-4 border-t border-white/10 pt-4 w-full">
+                      <div className="text-white/50 text-xs uppercase mb-1">Notes</div>
+                      <div className="text-sm leading-relaxed text-white/80 break-words">{desc}</div>
+                    </div>
+                  )}
+                </CardCurtainRevealDescription>
+              </CardCurtainReveal>
+            );
+          })}
+        </div>
       </div>
+      
+      <style jsx>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+          max-height: 80vh;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+      `}</style>
     </section>
   );
 }
