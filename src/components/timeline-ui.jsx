@@ -53,8 +53,8 @@ export const Timeline = ({ data }) => {
       ref={containerRef}
     >
       <div className="max-w-7xl mx-auto text-center px-4 md:px-8 lg:px-10 align-center">
-        <h2 className="text-4xl md:text-6xl leading-[100%] pt-20 font-bold tracking-tighter uppercase font-montserrat">
-          mah journey 
+        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
+          MAH <span className="text-white/80">TIMELINE</span>
         </h2>
         
       </div>

@@ -12,9 +12,9 @@ const Section2 = ({ scrollYProgress }) => {
 			className='relative min-h-screen bg-black text-white font-montserrat pb-20 flex items-center justify-center overflow-x-hidden'
 		>
 			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
-				<h1 className='text-4xl md:text-6xl leading-[100%] py-8 md:py-16 font-bold tracking-tighter uppercase font-montserrat'>
-					Chasing Horizons
-				</h1>
+				<h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
+          CHASING <span className="text-white/80">HORIZONS</span>
+        </h2>
 				<InfiniteGrid />
 			</article>
 		</motion.section>

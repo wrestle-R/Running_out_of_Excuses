@@ -4,6 +4,8 @@ import Section1 from './Section1';
 import Section2 from './Section2';
 import Section3 from '../pages/Runs';
 import { TimelineDemo } from './Section3';
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebase.config.js";
 
 const HeroScrollAnimation = () => {
   const container = useRef(null);
@@ -12,13 +14,23 @@ const HeroScrollAnimation = () => {
     offset: ['start start', 'end end'],
   });
 
-  // Fetch runs here for footer stats
+  // Fetch runs from Firebase for footer stats
   const [runs, setRuns] = useState([]);
   useEffect(() => {
-    fetch("/run.json")
-      .then((res) => res.json())
-      .then(setRuns)
-      .catch(() => setRuns([]));
+    async function fetchRuns() {
+      try {
+        const snapshot = await getDocs(collection(db, "strava_activities"));
+        const allRuns = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          allRuns.push(data);
+        });
+        setRuns(allRuns);
+      } catch {
+        setRuns([]);
+      }
+    }
+    fetchRuns();
   }, []);
   const totalDistance = runs.reduce(
     (sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0),
