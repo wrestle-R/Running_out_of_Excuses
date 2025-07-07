@@ -145,19 +145,23 @@ export default function Section3() {
       try {
         setLoading(true);
         setError(null);
-        
-        console.log('Fetching from backend...');
-        
-        // Try to fetch from backend first
-        const res = await fetch('http://localhost:3000/api/activities', {
+
+        // Use the hosted serverless endpoint from .env
+        const serverlessUrl = import.meta.env.VITE_SEREVRLESS;
+        const apiUrl = `${serverlessUrl.replace(/\/$/, "")}/api/activities`;
+
+        console.log('Fetching from serverless backend:', apiUrl);
+
+        // Try to fetch from serverless backend first
+        const res = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
-        
-        console.log('Backend response status:', res.status);
-        
+
+        console.log('Serverless backend response status:', res.status);
+
         if (res.status === 401) {
           // On 401, load from Firebase
           console.log('API rate limited, loading from Firebase...');
@@ -166,14 +170,14 @@ export default function Section3() {
           setRuns(firebaseData);
           return;
         }
-        
+
         if (!res.ok) {
           throw new Error(`Backend API Error: ${res.status}`);
         }
-        
+
         const data = await res.json();
         console.log('Backend data received:', data.length, 'activities');
-        
+
         // Transform data to match expected format
         const transformedData = data.map(activity => ({
           name: activity.name,
@@ -184,17 +188,17 @@ export default function Section3() {
           elapsed_time_min: activity.elapsed_time_min,
           splits: activity.splits || []
         }));
-        
+
         setRuns(transformedData);
-        setDataSource('Strava API');
-        
+        setDataSource('Strava API (Serverless)');
+
         // Save fresh data to Firebase for future use
         await saveActivitiesToFirebase(transformedData);
-        
+
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
-        
+
         // Fallback to Firebase on any error
         console.log('Error occurred, loading from Firebase...');
         setDataSource('Firebase (fallback)');
@@ -204,7 +208,7 @@ export default function Section3() {
         setLoading(false);
       }
     };
-    
+
     fetchActivities();
   }, []);
 
