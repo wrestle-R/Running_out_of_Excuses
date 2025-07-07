@@ -8,8 +8,7 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/runs" element={<Section3 />} />
-        <Route path="/strava" element={<StravaActivities />} />
+        <Route path="/runs" element={<StravaActivities />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </Router>
