@@ -218,6 +218,8 @@ export default function Section3() {
   return (
     <section className="py-16 px-4 md:px-8 bg-black text-white font-montserrat min-h-screen">
       <div className="max-w-7xl mx-auto">
+
+        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
           <button
             className="mb-6 md:mb-0 px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all duration-200 border border-white/10 backdrop-blur-sm flex items-center gap-2"
@@ -232,11 +234,7 @@ export default function Section3() {
               <span>·</span>
               <span>Total Distance: <span className="font-bold text-white">{totalDistance.toFixed(1)} km</span></span>
             </div>
-            {dataSource && (
-              <p className="text-white/50 text-xs mt-1">
-                Source: {dataSource}
-              </p>
-            )}
+            
           </div>
         </div>
         
@@ -372,6 +370,21 @@ export default function Section3() {
             );
           })}
         </div>
+      </div>
+      
+      {/* Strava badge and custom HTML at bottom */}
+      <div className="max-w-7xl mx-auto mt-16 flex flex-col items-center gap-4 pb-8">
+        <span
+          dangerouslySetInnerHTML={{
+            __html: `
+<a style="display:inline-block;background-color:#FC5200;color:#fff;padding:5px 10px 5px 30px;font-size:11px;font-family:Helvetica, Arial, sans-serif;white-space:nowrap;text-decoration:none;background-repeat:no-repeat;background-position:10px center;border-radius:3px;background-image:url('https://badges.strava.com/logo-strava-echelon.png')" href='https://strava.com/athletes/159046302' target="_clean">
+  Follow me on
+  <img src='https://badges.strava.com/logo-strava.png' alt='Strava' style='margin-left:2px;vertical-align:text-bottom' height=13 width=51 />
+</a>
+            `,
+          }}
+        />
+        
       </div>
       
       <style jsx>{`
