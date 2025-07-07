@@ -17,7 +17,7 @@ const monthsData = [
     key: "June",
     year: 2025,
     images: ["/2.jpg", "/3.jpg", "/7.jpg"],
-    description: "Started Running a little more, really started enjoying for the first time",
+    description: "Started going on longer runs lately and for the first time, actually started focussing on enjoying the run itself & Not just finishing it.",
     challenge: "I was in my gav so couldn't run and fell sick every second week.",
   },
   {
@@ -136,7 +136,7 @@ export function TimelineDemo() {
   });
 
   return (
-    <div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 px-2 md:px-8 font-montserrat">
+    <div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 pb-8 px-2 md:px-8 font-montserrat">
       <div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
         <Timeline data={timelineData} />
         <button
