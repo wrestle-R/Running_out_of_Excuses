@@ -168,6 +168,7 @@ export default function Section3() {
           setDataSource('Firebase (API rate limited)');
           const firebaseData = await loadActivitiesFromFirebase();
           setRuns(firebaseData);
+          console.log('Received response from Firebase');
           return;
         }
 
@@ -176,7 +177,7 @@ export default function Section3() {
         }
 
         const data = await res.json();
-        console.log('Backend data received:', data.length, 'activities');
+        console.log('Received response from Serverless:', data.length, 'activities');
 
         // Transform data to match expected format
         const transformedData = data.map(activity => ({
@@ -197,13 +198,23 @@ export default function Section3() {
 
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(err.message);
+        setError(
+          err?.message
+            ? `Failed to load activities: ${err.message}`
+            : 'An unknown error occurred while loading activities.'
+        );
 
         // Fallback to Firebase on any error
-        console.log('Error occurred, loading from Firebase...');
-        setDataSource('Firebase (fallback)');
-        const firebaseData = await loadActivitiesFromFirebase();
-        setRuns(firebaseData);
+        try {
+          console.log('Error occurred, loading from Firebase...');
+          setDataSource('Firebase (fallback)');
+          const firebaseData = await loadActivitiesFromFirebase();
+          setRuns(firebaseData);
+          console.log('Received response from Firebase');
+        } catch (firebaseErr) {
+          setRuns([]);
+          console.error('Error loading from Firebase:', firebaseErr);
+        }
       } finally {
         setLoading(false);
       }
@@ -222,7 +233,6 @@ export default function Section3() {
   return (
     <section className="py-16 px-4 md:px-8 bg-black text-white font-montserrat min-h-screen">
       <div className="max-w-7xl mx-auto">
-
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
           <button
@@ -245,23 +255,31 @@ export default function Section3() {
         <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
           Every Step <span className="text-white/80">Counts</span>
         </h2>
-        
+
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-pulse flex flex-col items-center">
-              <div className="h-8 w-40 bg-white/10 rounded mb-4"></div>
-              <div className="h-4 w-60 bg-white/10 rounded"></div>
-            </div>
+          <div className="flex flex-col items-center justify-center py-32 min-h-[300px]">
+            <svg className="animate-spin h-12 w-12 text-white mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <p className="text-lg text-white/80 font-semibold">Loading your activities...</p>
+            <p className="text-sm text-white/40 mt-2">Fetching from Strava or backup source.</p>
           </div>
         )}
-        
-        {error && !loading && runs.length === 0 && (
+
+        {error && !loading && (
           <div className="mx-auto max-w-lg text-center text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-6 mb-12">
-            <p className="font-medium mb-2">Unable to load activities</p>
-            <p className="text-sm opacity-80">{error}</p>
+            <p className="font-bold mb-2 text-xl">Unable to load activities</p>
+            <p className="text-base opacity-80">{error}</p>
+            <button
+              className="mt-4 px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
           </div>
         )}
-        
+
         {!loading && runs.length === 0 && !error && (
           <div className="text-center py-20">
             <p className="text-xl text-white/60">No activities found.</p>
