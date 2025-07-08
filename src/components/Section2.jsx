@@ -9,7 +9,7 @@ const Section2 = ({ scrollYProgress }) => {
 	return (
 		<motion.section
 			style={{ scale, rotate }}
-			className='relative min-h-screen bg-black text-white font-montserrat pb-20 flex items-center justify-center overflow-x-hidden'
+			className='relative min-h-screen bg-black text-white font-montserrat py-20 flex items-center justify-center overflow-x-hidden'
 		>
 			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
 				<h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">

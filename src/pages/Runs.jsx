@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Footprints } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, setDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase.config.js';
 import runnyBlack from "/runny-black-nobg.png";
 import runnyWhite from "/runny-white-nobg.png";
@@ -101,30 +101,13 @@ function formatSplitPace(pace) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-const saveActivitiesToFirebase = async (activities) => {
-  try {
-    const promises = activities.map(async (activity, index) => {
-      const activityId = `activity_${new Date(activity.date).getTime()}_${index}`;
-      await setDoc(doc(db, 'strava_activities', activityId), {
-        ...activity,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-    });
-    await Promise.all(promises);
-    console.log('✅ Activities saved to Firebase');
-  } catch (error) {
-    console.error('Error saving to Firebase:', error);
-  }
-};
-
 const loadActivitiesFromFirebase = async () => {
   try {
     const q = query(collection(db, 'strava_activities'), orderBy('date', 'desc'));
     const querySnapshot = await getDocs(q);
     const firebaseActivities = [];
     querySnapshot.forEach((doc) => {
-      firebaseActivities.push(doc.data());
+      firebaseActivities.push({ firebaseId: doc.id, ...doc.data() });
     });
     return firebaseActivities;
   } catch (error) {
@@ -137,7 +120,6 @@ export default function Section3() {
   const [runs, setRuns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dataSource, setDataSource] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -146,75 +128,15 @@ export default function Section3() {
         setLoading(true);
         setError(null);
 
-        // Use the hosted serverless endpoint from .env
-        const serverlessUrl = import.meta.env.VITE_SEREVRLESS;
-        const apiUrl = `${serverlessUrl.replace(/\/$/, "")}/api/activities`;
-
-        console.log('Fetching from serverless backend:', apiUrl);
-
-        // Try to fetch from serverless backend first
-        const res = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log('Serverless backend response status:', res.status);
-
-        if (res.status === 401) {
-          // On 401, load from Firebase
-          console.log('API rate limited, loading from Firebase...');
-          setDataSource('Firebase (API rate limited)');
-          const firebaseData = await loadActivitiesFromFirebase();
-          setRuns(firebaseData);
-          console.log('Received response from Firebase');
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error(`Backend API Error: ${res.status}`);
-        }
-
-        const data = await res.json();
-        console.log('Received response from Serverless:', data.length, 'activities');
-
-        // Transform data to match expected format
-        const transformedData = data.map(activity => ({
-          name: activity.name,
-          date: activity.date,
-          distance_km: parseFloat(activity.distance_km),
-          pace: formatPace(activity.pace_min_per_km),
-          description: activity.description || 'No description',
-          elapsed_time_min: activity.elapsed_time_min,
-          splits: activity.splits || []
-        }));
-
-        setRuns(transformedData);
-        setDataSource('Strava API (Serverless)');
-
-        // Save fresh data to Firebase for future use
-        await saveActivitiesToFirebase(transformedData);
+        console.log('Loading activities from Firebase...');
+        const firebaseData = await loadActivitiesFromFirebase();
+        setRuns(firebaseData);
+        console.log(`Loaded ${firebaseData.length} activities from Firebase`);
 
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(
-          err?.message
-            ? `Failed to load activities: ${err.message}`
-            : 'An unknown error occurred while loading activities.'
-        );
-
-        // Fallback to Firebase on any error
-        try {
-          console.log('Error occurred, loading from Firebase...');
-          setDataSource('Firebase (fallback)');
-          const firebaseData = await loadActivitiesFromFirebase();
-          setRuns(firebaseData);
-          console.log('Received response from Firebase');
-        } catch (firebaseErr) {
-          setRuns([]);
-          console.error('Error loading from Firebase:', firebaseErr);
-        }
+        setError('Failed to load activities from Firebase');
+        setRuns([]);
       } finally {
         setLoading(false);
       }
@@ -235,12 +157,16 @@ export default function Section3() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
-          <button
-            className="mb-6 md:mb-0 px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all duration-200 border border-white/10 backdrop-blur-sm flex items-center gap-2"
-            onClick={() => navigate("/")}
-          >
-            <span>←</span> Back to Home
-          </button>
+          <div className="flex gap-4 mb-6 md:mb-0">
+            <button
+              className="px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all duration-200 border border-white/10 backdrop-blur-sm flex items-center gap-2"
+              onClick={() => navigate("/")}
+            >
+              <span>←</span> Back to Home
+            </button>
+            
+
+          </div>
           
           <div className="flex flex-col items-end">
             <div className="flex gap-3 text-sm text-white/60">
@@ -248,7 +174,6 @@ export default function Section3() {
               <span>·</span>
               <span>Total Distance: <span className="font-bold text-white">{totalDistance.toFixed(1)} km</span></span>
             </div>
-            
           </div>
         </div>
         
@@ -263,7 +188,7 @@ export default function Section3() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
             </svg>
             <p className="text-lg text-white/80 font-semibold">Loading your activities...</p>
-            <p className="text-sm text-white/40 mt-2">Fetching from Strava or backup source.</p>
+            <p className="text-sm text-white/40 mt-2">Fetching from Firebase storage.</p>
           </div>
         )}
 
@@ -282,7 +207,13 @@ export default function Section3() {
 
         {!loading && runs.length === 0 && !error && (
           <div className="text-center py-20">
-            <p className="text-xl text-white/60">No activities found.</p>
+            <p className="text-xl text-white/60">No activities found in Firebase.</p>
+            <button
+              className="mt-4 px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              onClick={() => navigate("/refresh")}
+            >
+              Load Data from Strava
+            </button>
           </div>
         )}
         
@@ -296,7 +227,7 @@ export default function Section3() {
             
             return (
               <CardCurtainReveal
-                key={idx}
+                key={run.firebaseId || idx}
                 className="cursor-pointer bg-gradient-to-br from-white to-gray-100 border border-white/10"
               >
                 <CardCurtainRevealBody className="pt-5 px-8 flex flex-col h-[260px] overflow-x-hidden w-full max-w-full">
