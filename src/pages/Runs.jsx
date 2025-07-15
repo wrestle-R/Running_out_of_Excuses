@@ -109,6 +109,15 @@ const loadActivitiesFromFirebase = async () => {
     querySnapshot.forEach((doc) => {
       firebaseActivities.push({ firebaseId: doc.id, ...doc.data() });
     });
+    // Sort by mm/dd/yyyy descending
+    firebaseActivities.sort((a, b) => {
+      const parseDate = (str) => {
+        if (!str) return 0;
+        const [mm, dd, yyyy] = str.split('/').map(Number);
+        return new Date(yyyy, mm - 1, dd).getTime();
+      };
+      return parseDate(b.date) - parseDate(a.date);
+    });
     return firebaseActivities;
   } catch (error) {
     console.error('Error loading from Firebase:', error);
