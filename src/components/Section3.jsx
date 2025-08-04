@@ -26,9 +26,17 @@ const monthsData = [
 		key: "July",
 		year: 2025,
 		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		description: "The First week was my week of milestones, the rest was mehhh",
+		challenge: "With college starting struggled with making time for running",
+	},
+		{
+		key: "August",
+		year: 2025,
+		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
 		description: "Pushed myself further, started to see real progress and felt stronger.",
 		challenge: "With college starting struggled with making time for running",
 	},
+
 ];
 
 export function TimelineDemo() {
