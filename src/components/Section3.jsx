@@ -36,7 +36,20 @@ const monthsData = [
 		description: "Pushed myself further, started to see real progress and felt stronger.",
 		challenge: "With college starting struggled with making time for running",
 	},
-
+	{
+		key: "September",
+		year: 2025,
+		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	},
+	{
+		key: "October",
+		year: 2025,
+		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	},
 ];
 
 export function TimelineDemo() {
@@ -168,7 +181,7 @@ export function TimelineDemo() {
 		return {
 			title: (
 				<div className="flex flex-col gap-1">
-					<h2 className={`${month.key === 'August' ? 'text-3xl md:text-5xl' : 'text-4xl md:text-6xl'} font-bold tracking-tighter uppercase mb-8 text-center`}>
+					<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-3xl md:text-5xl' : 'text-4xl md:text-6xl'} font-bold tracking-tighter uppercase mb-8 text-center`}>
 						<span className="text-white/80">{month.key} {month.year}</span>
 					</h2>
 					<div className="inline-flex w-[60%] gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-4 py-2 shadow-inner">
