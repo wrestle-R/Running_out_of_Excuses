@@ -50,6 +50,20 @@ const monthsData = [
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
+	{
+		key: "November",
+		year: 2025,
+		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	},
+	{
+		key: "December",
+		year: 2025,
+		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	},
 ];
 
 export function TimelineDemo() {
