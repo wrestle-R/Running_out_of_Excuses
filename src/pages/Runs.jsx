@@ -101,19 +101,26 @@ function formatSplitPace(pace) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+function formatDateToDDMMYYYY(dateStr) {
+  if (!dateStr) return dateStr;
+  const [mm, dd, yyyy] = dateStr.split('/').map(Number);
+  return `${String(dd).padStart(2, '0')}-${String(mm).padStart(2, '0')}-${yyyy}`;
+}
+
 const loadActivitiesFromFirebase = async () => {
   try {
     const q = query(collection(db, 'strava_activities'), orderBy('date', 'desc'));
     const querySnapshot = await getDocs(q);
     const firebaseActivities = [];
     querySnapshot.forEach((doc) => {
-      firebaseActivities.push({ firebaseId: doc.id, ...doc.data() });
+      const data = doc.data();
+      firebaseActivities.push({ firebaseId: doc.id, ...data, date: formatDateToDDMMYYYY(data.date) });
     });
-    // Sort by mm/dd/yyyy descending
+    // Sort by dd-mm-yyyy descending
     firebaseActivities.sort((a, b) => {
       const parseDate = (str) => {
         if (!str) return 0;
-        const [mm, dd, yyyy] = str.split('/').map(Number);
+        const [dd, mm, yyyy] = str.split('-').map(Number);
         return new Date(yyyy, mm - 1, dd).getTime();
       };
       return parseDate(b.date) - parseDate(a.date);
