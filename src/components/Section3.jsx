@@ -154,7 +154,7 @@ export function TimelineDemo() {
 			<div className="w-full flex items-center justify-center text-gray-400 py-12">
 				<div className="flex flex-col items-center gap-4">
 					<svg
-						className="animate-spin h-8 w-8 text-white"
+						className="animate-spin h-8 w-8 text-pure-white"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
 						viewBox="0 0 24 24"

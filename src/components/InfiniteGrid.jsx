@@ -166,7 +166,7 @@ const InfiniteGrid = () => {
             />
             {hoveredId === image.id && (
               <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent rounded transition-all duration-300">
-                <span className="text-white text-sm md:text-base font-medium p-3 md:p-4 text-center w-full">
+                <span className="text-pure-white text-sm md:text-base font-medium p-3 md:p-4 text-center w-full">
                   {image.desc}
                 </span>
               </div>

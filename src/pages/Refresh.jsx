@@ -142,7 +142,7 @@ const Refresh = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-montserrat py-16 px-4 md:px-8">
+    <div className="min-h-screen bg-pure-black text-pure-white font-montserrat py-16 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
         
         {/* Header */}
@@ -158,54 +158,54 @@ const Refresh = () => {
         {/* Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-4">
-            Refresh <span className="text-white/80">Data</span>
+            Refresh <span className="text-pure-white/80">Data</span>
           </h1>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
+          <p className="text-lg text-pure-white/60 max-w-2xl mx-auto">
             Sync your latest Strava activities with Firebase. Only new activities will be added.
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="bg-pure-white/5 border border-pure-white/10 rounded-2xl p-8 backdrop-blur-sm">
           
           {/* Status Display */}
           {status && (
-            <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="mb-6 p-4 bg-pure-white/5 rounded-lg border border-pure-white/10">
               <div className="flex items-center gap-3">
                 {loading && (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-5 w-5 text-pure-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                   </svg>
                 )}
-                <span className="text-white/90">{status}</span>
+                <span className="text-foreground/90">{status}</span>
               </div>
             </div>
           )}
 
           {/* Error Display */}
           {error && (
-            <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 font-semibold">Error: {error}</p>
+            <div className="mb-6 p-4 bg-destructive/20 border border-destructive rounded-lg">
+              <p className="text-destructive font-semibold">Error: {error}</p>
             </div>
           )}
 
           {/* Result Display */}
           {result && !loading && (
-            <div className="mb-6 p-6 bg-green-900/20 border border-green-500/30 rounded-lg">
-              <h3 className="text-green-400 font-bold text-lg mb-2">Refresh Summary</h3>
+            <div className="mb-6 p-6 bg-accent/20 border border-accent rounded-lg">
+              <h3 className="text-accent font-bold text-lg mb-2">Refresh Summary</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-white/60">Total from Strava:</span>
-                  <span className="ml-2 font-bold text-white">{result.totalCount}</span>
+                  <span className="text-muted-foreground">Total from Strava:</span>
+                  <span className="ml-2 font-bold text-foreground">{result.totalCount}</span>
                 </div>
                 <div>
-                  <span className="text-white/60">New activities added:</span>
-                  <span className="ml-2 font-bold text-green-400">{result.newCount}</span>
+                  <span className="text-muted-foreground">New activities added:</span>
+                  <span className="ml-2 font-bold text-accent">{result.newCount}</span>
                 </div>
               </div>
               {result.newCount === 0 && (
-                <p className="text-white/60 mt-2 text-sm">All activities are already up to date!</p>
+                <p className="text-pure-white/60 mt-2 text-sm">All activities are already up to date!</p>
               )}
             </div>
           )}
@@ -215,10 +215,10 @@ const Refresh = () => {
             <button
               onClick={refreshData}
               disabled={loading}
-              className={`px-8 py-4 rounded-full text-white font-semibold text-lg transition-all duration-200 ${
+              className={`px-8 py-4 rounded-full text-foreground font-semibold text-lg transition-all duration-200 ${
                 loading
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                  ? 'bg-muted cursor-not-allowed'
+                  : 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl'
               }`}
             >
               {loading ? (
@@ -238,9 +238,9 @@ const Refresh = () => {
           </div>
 
           {/* Instructions */}
-          <div className="mt-8 pt-6 border-t border-white/10">
-            <h4 className="text-white font-semibold mb-3">How it works:</h4>
-            <ul className="text-white/60 text-sm space-y-2">
+          <div className="mt-8 pt-6 border-t border-pure-white/10">
+            <h4 className="text-pure-white font-semibold mb-3">How it works:</h4>
+            <ul className="text-pure-white/60 text-sm space-y-2">
               <li>• Fetches your latest 25 activities from Strava</li>
               <li>• Compares with existing activities in Firebase</li>
               <li>• Only adds new activities (no duplicates)</li>

@@ -89,6 +89,23 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* Brand and utility colors */
+  --color-pure-black: #000000;
+  --color-pure-white: #ffffff;
+  --color-strava: #FC5200;
+  
+  /* Gray scale */
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-800: #1f2937;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  
+  /* Gradient colors */
+  --color-purple-500: #a855f7;
+  --color-blue-500: #3b82f6;
 }
 
 .dark {
@@ -131,5 +148,124 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Theme-based color utilities for consistency */
+@layer components {
+  /* Pure colors */
+  .text-pure-white {
+    color: var(--color-pure-white);
+  }
+  
+  .text-pure-black {
+    color: var(--color-pure-black);
+  }
+  
+  .bg-pure-white {
+    background-color: var(--color-pure-white);
+  }
+  
+  .bg-pure-black {
+    background-color: var(--color-pure-black);
+  }
+  
+  /* Gray scale */
+  .text-gray-300 {
+    color: var(--color-gray-300);
+  }
+  
+  .text-gray-400 {
+    color: var(--color-gray-400);
+  }
+  
+  .text-gray-500 {
+    color: var(--color-gray-500);
+  }
+  
+  .bg-gray-800 {
+    background-color: var(--color-gray-800);
+  }
+  
+  .text-gray-800 {
+    color: var(--color-gray-800);
+  }
+  
+  .bg-neutral-700 {
+    background-color: var(--color-neutral-700);
+  }
+  
+  .border-neutral-700 {
+    border-color: var(--color-neutral-700);
+  }
+  
+  .bg-neutral-800 {
+    background-color: var(--color-neutral-800);
+  }
+  
+  .text-neutral-800 {
+    color: var(--color-neutral-800);
+  }
+  
+  /* Strava brand color */
+  .bg-strava {
+    background-color: var(--color-strava);
+  }
+  
+  .text-strava {
+    color: var(--color-strava);
+  }
+  
+  /* Gradient colors */
+  .text-purple-500 {
+    color: var(--color-purple-500);
+  }
+  
+  .text-blue-500 {
+    color: var(--color-blue-500);
+  }
+  
+  /* Primary text/background alternation */
+  .bg-surface-dark {
+    @apply bg-background;
+  }
+  
+  .bg-surface-light {
+    @apply bg-card;
+  }
+  
+  .text-muted-default {
+    @apply text-muted-foreground;
+  }
+  
+  /* Buttons and interactive elements using theme colors */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent/80;
+  }
+  
+  /* Gradient overlays using theme accent colors */
+  .gradient-accent-to-transparent {
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  
+  .gradient-primary-to-transparent {
+    background: linear-gradient(to bottom, var(--primary), transparent);
+  }
+  
+  /* Gradient with purple and blue */
+  .gradient-purple-blue {
+    background: linear-gradient(to top, var(--color-purple-500), var(--color-blue-500));
+  }
+  
+  .gradient-black-transparent {
+    background: linear-gradient(to bottom, var(--color-pure-black, rgba(0, 0, 0, 0.8)), transparent);
   }
 }

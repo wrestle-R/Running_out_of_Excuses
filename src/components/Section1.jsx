@@ -64,7 +64,7 @@ const Section1 = ({ scrollYProgress }) => {
   return (
     <motion.section
       style={{ scale, rotate, opacity }}
-      className='sticky top-0 h-screen bg-white flex flex-col items-center justify-center text-black overflow-hidden font-montserrat'
+      className='sticky top-0 h-screen bg-pure-white flex flex-col items-center justify-center text-pure-black overflow-hidden font-montserrat'
     >
       {/* Gradient overlay */}
       <div className='absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/80'></div>
@@ -83,7 +83,7 @@ const Section1 = ({ scrollYProgress }) => {
       </div>
 
       {/* Ambient glow effect */}
-      <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-black/5 rounded-full blur-3xl'></div>
+      <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pure-black/5 rounded-full blur-3xl'></div>
     </motion.section>
   );
 };

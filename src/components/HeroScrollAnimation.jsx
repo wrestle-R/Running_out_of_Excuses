@@ -39,14 +39,14 @@ const HeroScrollAnimation = () => {
   const totalRuns = runs.length;
 
   return (
-    <main ref={container} className='relative h-[200vh] bg-black'>
+    <main ref={container} className='relative h-[200vh] bg-pure-black'>
       <Section1 scrollYProgress={scrollYProgress} />
       <Section2 scrollYProgress={scrollYProgress} />
       {/* <Section3/> */}
       <TimelineDemo />
       
-      <footer className='bg-black border-t border-white/10'>
-        <h1 className='text-[12vw] py-12 leading-[100%] uppercase font-bold text-center text-white tracking-tighter'>
+      <footer className='bg-pure-black border-t border-white/10'>
+        <h1 className='text-[12vw] py-12 leading-[100%] uppercase font-bold text-center text-pure-white tracking-tighter'>
           42.195 km
         </h1>
         <div className='flex flex-col md:flex-row items-center justify-center gap-6 py-4'>

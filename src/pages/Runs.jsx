@@ -169,7 +169,7 @@ export default function Section3() {
   const totalRuns = runs.length;
 
   return (
-    <section className="py-16 px-4 md:px-8 bg-black text-white font-montserrat min-h-screen">
+    <section className="py-16 px-4 md:px-8 bg-pure-black text-pure-white font-montserrat min-h-screen">
       <div className="max-w-7xl mx-auto">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -193,18 +193,18 @@ export default function Section3() {
           </div>
         </div>
         
-        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
-          Every Step <span className="text-white/80">Counts</span>
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
+          Every Step <span className="text-pure-white/80">Counts</span>
         </h2>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-32 min-h-[300px]">
-            <svg className="animate-spin h-12 w-12 text-white mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-12 w-12 text-pure-white mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
             </svg>
-            <p className="text-lg text-white/80 font-semibold">Loading your activities...</p>
-            <p className="text-sm text-white/40 mt-2">Fetching from Firebase storage.</p>
+            <p className="text-lg text-pure-white/80 font-semibold">Loading your activities...</p>
+            <p className="text-sm text-pure-white/40 mt-2">Fetching from Firebase storage.</p>
           </div>
         )}
 
@@ -213,7 +213,7 @@ export default function Section3() {
             <p className="font-bold mb-2 text-xl">Unable to load activities</p>
             <p className="text-base opacity-80">{error}</p>
             <button
-              className="mt-4 px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+              className="mt-4 px-4 py-2 rounded bg-red-600 text-pure-white font-semibold hover:bg-red-700 transition"
               onClick={() => window.location.reload()}
             >
               Retry
@@ -223,9 +223,9 @@ export default function Section3() {
 
         {!loading && runs.length === 0 && !error && (
           <div className="text-center py-20">
-            <p className="text-xl text-white/60">No activities found in Firebase.</p>
+            <p className="text-xl text-pure-white/60">No activities found in Firebase.</p>
             <button
-              className="mt-4 px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              className="mt-4 px-6 py-2 rounded-full bg-blue-600 text-pure-white font-semibold hover:bg-blue-700 transition"
               onClick={() => navigate("/refresh")}
             >
               Load Data from Strava
@@ -244,7 +244,7 @@ export default function Section3() {
             return (
               <CardCurtainReveal
                 key={run.firebaseId || idx}
-                className="cursor-pointer bg-gradient-to-br from-white to-gray-100 border border-white/10"
+                className="cursor-pointer bg-gradient-to-br from-white to-gray-100 border border-pure-white/10"
               >
                 <CardCurtainRevealBody className="pt-5 px-8 flex flex-col h-[260px] overflow-x-hidden w-full max-w-full">
                   <div className="flex justify-between items-start w-full">
@@ -268,13 +268,13 @@ export default function Section3() {
                       {run.name || 'Run'}
                     </h3>
                     <div className="flex items-end gap-2 justify-center w-full">
-                      <span className="text-6xl font-extrabold text-black leading-none drop-shadow-sm">{run.distance_km}</span>
+                      <span className="text-6xl font-extrabold text-pure-black leading-none drop-shadow-sm">{run.distance_km}</span>
                       <span className="text-gray-500 font-semibold text-2xl mb-1">km</span>
                     </div>
                   </div>
                 </CardCurtainRevealBody>
                 
-                <CardCurtainRevealDescription className="bg-black text-white p-6 overflow-auto custom-scrollbar w-full max-w-full">
+                <CardCurtainRevealDescription className="bg-pure-black text-pure-white p-6 overflow-auto custom-scrollbar w-full max-w-full">
                   <div className="flex items-center justify-between mb-5 w-full">
                     <div className="flex items-center gap-2 min-w-0">
                       {walk ? (
@@ -286,22 +286,22 @@ export default function Section3() {
                           style={{ width: 22, height: 22, objectFit: "contain" }}
                         />
                       )}
-                      <span className="font-bold truncate text-lg max-w-[140px]">{run.name || 'Run'}</span>
+                        <span className="font-bold truncate text-lg max-w-[140px]">{run.name || 'Run'}</span>
                     </div>
-                    <span className="text-xs text-white/60 font-medium truncate max-w-[90px] text-right">{run.date}</span>
+                    <span className="text-xs text-pure-white/60 font-medium truncate max-w-[90px] text-right">{run.date}</span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6 w-full">
                     <div>
-                      <div className="text-white/50 text-xs uppercase mb-1">Distance</div>
+                      <div className="text-pure-white/50 text-xs uppercase mb-1">Distance</div>
                       <div className="text-xl font-bold">{run.distance_km} km</div>
                     </div>
                     <div>
-                      <div className="text-white/50 text-xs uppercase mb-1">Pace</div>
+                      <div className="text-pure-white/50 text-xs uppercase mb-1">Pace</div>
                       <div className="text-xl font-bold">{run.pace}</div>
                     </div>
                     <div>
-                      <div className="text-white/50 text-xs uppercase mb-1">Time</div>
+                      <div className="text-pure-white/50 text-xs uppercase mb-1">Time</div>
                       <div className="text-xl font-bold">{formatTime(run.elapsed_time_min)}</div>
                     </div>
                   </div>
@@ -309,8 +309,8 @@ export default function Section3() {
                   {hasSplits && (
                     <div className="mb-6 w-full">
                       <div className="flex justify-between items-center mb-3 w-full">
-                        <div className="text-white/50 text-xs uppercase">Kilometer Splits</div>
-                        <div className="text-xs text-white/40 font-medium">{splitCount} splits</div>
+                        <div className="text-pure-white/50 text-xs uppercase">Kilometer Splits</div>
+                        <div className="text-xs text-pure-white/40 font-medium">{splitCount} splits</div>
                       </div>
                       <div className="flex flex-col gap-1.5 w-full">
                         {run.splits.map((split, i) => (
@@ -329,9 +329,9 @@ export default function Section3() {
                   )}
                   
                   {desc && desc !== "No description 😶" && (
-                    <div className="mt-4 border-t border-white/10 pt-4 w-full">
-                      <div className="text-white/50 text-xs uppercase mb-1">Notes</div>
-                      <div className="text-sm leading-relaxed text-white/80 break-words">{desc}</div>
+                    <div className="mt-4 border-t border-pure-white/10 pt-4 w-full">
+                      <div className="text-pure-white/50 text-xs uppercase mb-1">Notes</div>
+                      <div className="text-sm leading-relaxed text-pure-white/80 break-words">{desc}</div>
                     </div>
                   )}
                 </CardCurtainRevealDescription>
