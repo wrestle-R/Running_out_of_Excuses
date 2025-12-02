@@ -151,7 +151,7 @@ const InfiniteGrid = () => {
         {runningImages.map((image) => (
           <GridItem
             key={image.id}
-            className={`relative h-54 w-36 md:h-96 md:w-64 transition-all duration-500 ease-out
+            className={`relative h-44 w-32 md:h-80 md:w-56 transition-all duration-500 ease-out
               ${hoveredId !== null && hoveredId !== image.id ? "blur-[2px] brightness-50 scale-95" : ""}
               ${hoveredId === image.id ? "scale-110 z-30" : ""}
             `}
