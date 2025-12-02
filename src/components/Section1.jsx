@@ -57,13 +57,26 @@ const TextReveal = ({ text, delay = 0 }) => {
 };
 
 const Section1 = ({ scrollYProgress }) => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, -2]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3]);
   
+  const sectionStyle = isMobile ? {} : { scale, rotate, opacity };
+  
   return (
     <motion.section
-      style={{ scale, rotate, opacity }}
+      style={sectionStyle}
       className='sticky top-0 h-screen bg-pure-white flex flex-col items-center justify-center text-pure-black overflow-hidden font-montserrat'
     >
       {/* Gradient overlay */}

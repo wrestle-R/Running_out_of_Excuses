@@ -69,7 +69,17 @@ const monthsData = [
 export function TimelineDemo() {
 	const [runs, setRuns] = useState({});
 	const [loading, setLoading] = useState(true);
+	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 	const navigate = useNavigate();
+
+	// Handle window resize to detect mobile
+	useEffect(() => {
+		const handleResize = () => {
+			setIsMobile(window.innerWidth < 768);
+		};
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	useEffect(() => {
 		async function fetchRunsFromFirebase() {
@@ -194,11 +204,11 @@ export function TimelineDemo() {
 
 		return {
 			title: (
-				<div className="flex flex-col gap-1">
-					<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-3xl md:text-5xl' : 'text-4xl md:text-6xl'} font-bold tracking-tighter uppercase mb-8 text-center`}>
+				<div className="flex flex-col gap-1 md:gap-1">
+					<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-xl sm:text-2xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-6xl'} font-bold tracking-tighter uppercase mb-2 md:mb-8 text-center md:text-left`}>
 						<span className="text-white/80">{month.key} {month.year}</span>
 					</h2>
-					<div className="inline-flex w-[60%] gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-4 py-2 shadow-inner">
+					<div className="inline-flex w-full md:w-[60%] gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-3 md:px-4 py-1.5 md:py-2 shadow-inner">
 						<span>
 							<span className="text-white font-bold">{totalRuns}</span> runs
 						</span>
@@ -210,27 +220,27 @@ export function TimelineDemo() {
 							km
 						</span>
 					</div>
-					<div className="text-sm text-gray-400 mt-1">
+					<div className="text-xs md:text-sm text-gray-400 mt-1 leading-relaxed">
 						<span className="font-bold text-white">Challenge:</span> {month.challenge}
 					</div>
 				</div>
 			),
 			content: (
 				<div>
-					<div className="text-base md:text-lg text-gray-300 mb-3 font-medium italic text-center">
+					<div className="text-xs sm:text-sm md:text-lg text-gray-300 mb-3 md:mb-3 font-medium italic text-left md:text-center leading-relaxed">
 						{month.description}
 					</div>
 					{/* Show top runs if available */}
 					{topRuns.length > 0 && (
-						<div className="mb-4">
-							<h4 className="text-white/60 text-sm font-semibold mb-2 text-center">
+						<div className="mb-3 md:mb-4">
+							<h4 className="text-white/60 text-xs md:text-sm font-semibold mb-2 md:mb-2 text-left md:text-center">
 								Top Runs This Month
 							</h4>
-							<div className="flex flex-wrap justify-center gap-2">
+							<div className="flex flex-col sm:flex-row sm:flex-wrap justify-start md:justify-center gap-2 md:gap-2">
 								{topRuns.map((run, idx) => (
 									<div
 										key={run.id}
-										className="bg-white/10 rounded-lg px-3 py-2 text-xs"
+										className="bg-white/10 rounded-lg px-3 md:px-3 py-2 md:py-2 text-xs md:text-xs"
 									>
 										<span className="text-white font-bold">
 											{run.distance_km}km
@@ -241,16 +251,21 @@ export function TimelineDemo() {
 							</div>
 						</div>
 					)}
-					<div className="flex pl-6 flex-row mt-4 gap-4 justify-center">
-						{month.images.map((src, idx) => (
-							<img
-								key={src}
-								src={src}
-								alt={`Run ${month.key} ${idx + 1}`}
-								className="rounded-xl md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition"
-								style={{ objectFit: "contain", height: "16rem" }}
-							/>
-						))}
+					<div className="flex flex-row mt-3 md:mt-4 gap-2 md:gap-4 justify-start md:justify-center flex-wrap overflow-hidden">
+						{month.images.map((src, idx) => {
+							// Show only first 2 images on mobile, all 3 on desktop
+							if (isMobile && idx >= 2) return null;
+							
+							return (
+								<img
+									key={src}
+									src={src}
+									alt={`Run ${month.key} ${idx + 1}`}
+									className="rounded-lg md:rounded-xl h-28 sm:h-32 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition flex-shrink-0"
+									style={{ objectFit: "contain" }}
+								/>
+							);
+						})}
 					</div>
 				</div>
 			),
@@ -258,11 +273,11 @@ export function TimelineDemo() {
 	});
 
 	return (
-		<div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-12 pb-8 px-2 md:px-8 font-montserrat">
+		<div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
 			<div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
 				<Timeline data={timelineData} />
 				<button
-					className="mt-8 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur"
+					className="mt-6 md:mt-8 px-6 py-2.5 md:px-5 md:py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur active:scale-95"
 					onClick={() => navigate("/runs")}
 				>
 					View All Runs →

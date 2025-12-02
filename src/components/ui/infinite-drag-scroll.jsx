@@ -50,8 +50,21 @@ export const DraggableContainer = ({
   const y = useMotionValue(0);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
   const handleIsDragging = () => setIsDragging(true);
   const handleIsNotDragging = () => setIsDragging(false);
+
+  // Detect mobile device on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const container = ref.current?.getBoundingClientRect();
@@ -98,7 +111,8 @@ export const DraggableContainer = ({
               "grid h-fit w-fit cursor-grab grid-cols-[repeat(2,1fr)] bg-black active:cursor-grabbing will-change-transform",
               className,
             )}
-            drag
+            drag={isMobile ? "x" : true}
+            dragAxis={isMobile ? "x" : undefined}
             dragMomentum={true}
             dragTransition={{
               timeConstant: 200,
