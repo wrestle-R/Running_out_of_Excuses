@@ -9,7 +9,11 @@ const monthsData = [
 	{
 		key: "May",
 		year: 2025,
-		images: ["/1.jpg", "/8.jpg", "/12.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432188/1_mdhq5f.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432183/2_lx6d65.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/3_pu3pw9.jpg",
+		],
 		description:
 			"Just Started Running, love seeing new places and feeling of accomplishment just after I finish a run",
 		challenge: "I had a hairline fracture on my left foot, so I had to slow down.",
@@ -17,7 +21,11 @@ const monthsData = [
 	{
 		key: "June",
 		year: 2025,
-		images: ["/2.jpg", "/3.jpg", "/7.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/4_l532dq.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/5_lrl7lw.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/6_k2eque.jpg",
+		],
 		description:
 			"Started going on longer runs lately and for the first time, actually started focussing on enjoying the run itself & Not just finishing it.",
 		challenge: "I was in my gav so couldn't run and fell sick every second week.",
@@ -25,42 +33,66 @@ const monthsData = [
 	{
 		key: "July",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/7_mncp5f.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/8_hewv9v.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/9_ubd6ea.jpg",
+		],
 		description: "The First week was my week of milestones, the rest was mehhh	",
 		challenge: "With college starting struggled with making time for running",
 	},
 	{
 		key: "August",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
 		description: "Pushed myself further, started to see real progress and felt stronger.",
 		challenge: "With college starting struggled with making time for running",
 	},
 	{
 		key: "September",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432197/13_ke9xps.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/14_pvhemv.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432191/15_pkt5y4.jpg",
+		],
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
 	{
 		key: "October",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432193/16_pwiik2.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432192/17_astwir.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/18_g8d7b6.jpg",
+		],
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
 	{
 		key: "November",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/19_qghitb.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/20_x8ps41.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/21_qew9o1.jpg",
+		],
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
 	{
 		key: "December",
 		year: 2025,
-		images: ["/9.jpg", "/9.jpg", "/9.jpg"],
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
