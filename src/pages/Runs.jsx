@@ -259,7 +259,13 @@ export default function Section3() {
                         />
                       )}
                     </div>
-                    <span className="text-base font-semibold text-gray-500 truncate max-w-[120px] text-right">{run.date}</span>
+                    <span className="text-base font-semibold text-gray-500 truncate max-w-[120px] text-right">
+                      {new Date(run.date).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
                   </div>
                   
                   <div className="flex flex-col flex-grow pb-10 justify-center items-center w-full">
@@ -287,7 +293,13 @@ export default function Section3() {
                       )}
                         <span className="font-bold truncate text-lg max-w-[140px]">{run.name || 'Run'}</span>
                     </div>
-                    <span className="text-xs text-pure-white/60 font-medium truncate max-w-[90px] text-right">{run.date}</span>
+                    <span className="text-xs text-pure-white/60 font-medium truncate max-w-[90px] text-right">
+                      {new Date(run.date).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6 w-full">

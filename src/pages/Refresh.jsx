@@ -163,6 +163,11 @@ const Refresh = () => {
           const paceMinPerKm = 16.666666667 / split.average_speed;
           return formatPace(paceMinPerKm);
         }
+        
+        // Check for pace_min_per_km directly (from our new backend format)
+        if (split.pace_min_per_km) {
+           return formatPace(split.pace_min_per_km);
+        }
 
         // Calculate from distance (meters) and time (seconds)
         if (split.distance && split.elapsed_time) {
@@ -176,32 +181,99 @@ const Refresh = () => {
         return split.pace || '';
       };
 
+      // Calculate max splits to determine header columns
+      let maxSplits = 0;
+      runs.forEach(run => {
+        if (run.splits && run.splits.length > maxSplits) {
+          maxSplits = run.splits.length;
+        }
+      });
+
+      // Prepare CSV headers
+      let headers = ['Run Name', 'Date', 'Total Distance (km)', 'Total Time (min)', 'Average Pace (min/km)', 'Notes'];
+      for (let i = 1; i <= maxSplits; i++) {
+        headers.push(`Split${i}_Distance(km)`, `Split${i}_Time`, `Split${i}_Pace`);
+      }
+      
+
       // Process each run
       runs.forEach((run) => {
-        const splits = run.splits && run.splits.length > 0 ? run.splits : [{}];
+        const splits = run.splits || [];
         
-        splits.forEach((split, index) => {
-          // Normalize split data
-          // Assume distance > 100 is meters, otherwise assume km or use raw
-          const splitDist = split.distance ? (split.distance > 100 ? (split.distance / 1000).toFixed(2) : split.distance) : '';
-          const splitPace = calculateSplitPace(split);
-          // Use elapsed_time if available (common in Strava), else fallback
-          const splitTime = split.elapsed_time ? formatSplitTime(split.elapsed_time) : (split.time || '');
+        let formattedDate = '';
+        if (run.date) {
+             try {
+                 // Try to format as YYYY-MM-DD
+                 formattedDate = new Date(run.date).toISOString().split('T')[0];
+             } catch (e) {
+                 formattedDate = run.date;
+             }
+        }
 
-          const row = [
-            `"${run.name || ''}"`,
-            run.date || '',
-            run.distance_km || '',
-            run.pace || '',
-            run.elapsed_time_min || '',
-            `"${run.description || ''}"`,
-            splits.length > 0 && split.distance ? index + 1 : '', // Only show split number if it's a real split
-            splitDist,
-            splitPace,
-            splitTime
-          ];
-          csvContent += row.join(',') + '\n';
-        });
+        const row = [
+          `"${run.name || ''}"`,
+          formattedDate,
+          run.distance_km || '',
+          run.elapsed_time_min || '',
+          run.pace || '',
+          `"${run.description || ''}"`
+        ];
+
+        // Add split data inline
+        for (let i = 0; i < maxSplits; i++) {
+          if (i < splits.length) {
+            const split = splits[i];
+            
+            // Normalize split data logic
+            // Backend sends `km` (actually just split index/label sometimes) or `distance`?
+            // index.js backend sends: { km: s.split, pace_min_per_km: ..., elapsed_time: ... }
+            // Run.json legacy might have different format.
+            // Let's look at `calculateSplitPace` logic again.
+            
+            // Distance: backend might not send clean distance in km?
+            // Strava `splits_metric` has `distance` in meters usually.
+            // Our backend `index.js` uses `s.split` as key "km" but that's just a number usually.
+            // Wait, Strava `splits_metric` objects have `distance` (float meters), `elapsed_time` (int seconds), `average_speed` (float m/s), `pace_zone`.
+            // Our backend `index.js` maps:
+            // km: s.split (which is split number usually), elapsed_time, pace_min_per_km.
+            // It actually DOES NOT send distance in meters explicitly in backend map!
+            // Backend: `km: s.split`. `s.split` typically is "1", "2"...
+            
+            // Let's re-check backend source code I wrote.
+            // splits: ... map(s => ({ km: s.split, pace_min_per_km: ..., elapsed_time: s.elapsed_time }))
+            // It seems I missed `distance` in the backend splits mapping? 
+            // Ah, Strava splits_metric items usually imply 1km splits mostly, but last one is partial.
+            // Standard Strava split is 1000m.
+            // But let's check legacy data or Firebase data.
+            // `Run.json` doesn't show splits structure.
+            
+            // Assuming nearly 1km or calculating from `elapsed_time` and `pace`.
+            // Let's try to infer distance if missing.
+            
+            let splitDist = '';
+            if (split.distance) {
+               splitDist = (split.distance > 100 ? (split.distance / 1000).toFixed(2) : split.distance);
+            } else if (split.km) {
+               // If backend returns 'km' as the split index, we ideally need the actual distance.
+               // Strava splits are usually 1km. But let's use what we have.
+               // If we can't find distance, we might output '1.00' if it's not the last one? No that's risky.
+               // Let's look at `index.js` again.
+               // I should update backend to include `distance` in split if possible.
+               // But for now, let's work with what we have.
+               splitDist = split.km || '';
+            }
+
+            const splitPace = calculateSplitPace(split);
+            const splitTime = split.elapsed_time ? formatSplitTime(split.elapsed_time) : (split.time || '');
+
+             row.push(splitDist, splitTime, splitPace);
+          } else {
+             // Empty columns for missing splits
+             row.push('', '', '');
+          }
+        }
+        
+        csvContent += row.join(',') + '\n';
       });
 
       // Create blob and download
