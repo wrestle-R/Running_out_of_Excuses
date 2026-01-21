@@ -204,7 +204,6 @@ export default function Section3() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
             </svg>
             <p className="text-lg text-pure-white/80 font-semibold">Loading your activities...</p>
-            <p className="text-sm text-pure-white/40 mt-2">Fetching from Firebase storage.</p>
           </div>
         )}
 
@@ -223,12 +222,12 @@ export default function Section3() {
 
         {!loading && runs.length === 0 && !error && (
           <div className="text-center py-20">
-            <p className="text-xl text-pure-white/60">No activities found in Firebase.</p>
+            <p className="text-xl text-pure-white/60">No activities found yet.</p>
             <button
               className="mt-4 px-6 py-2 rounded-full bg-blue-600 text-pure-white font-semibold hover:bg-blue-700 transition"
               onClick={() => navigate("/refresh")}
             >
-              Load Data from Strava
+              Load Activities
             </button>
           </div>
         )}

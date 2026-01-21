@@ -49,7 +49,7 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Pushed myself further, started to see real progress and felt stronger.",
+		description: "Saw some real progress started hitting new paces and distances",
 		challenge: "With college starting struggled with making time for running",
 	},
 	{
@@ -60,8 +60,8 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/14_pvhemv.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432191/15_pkt5y4.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+		description: "Didnt really Run much this month, college in full force",
+		challenge: "The ultimate low point- physically and emotionally",
 	},
 	{
 		key: "October",
@@ -71,8 +71,8 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432192/17_astwir.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/18_g8d7b6.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+		description: "Tried getting back into shape after a rough September, didnt go too well",
+		challenge: "Fell sick for 2 weeks straight, lost all strength to run",
 	},
 	{
 		key: "November",
@@ -82,8 +82,8 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/20_x8ps41.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/21_qew9o1.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+		description: "Started again, frustrating to start from scratch",
+		challenge: "Getting back to my former strength, after a break",
 	},
 	{
 		key: "December",
@@ -93,8 +93,8 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+		description: "Really tried to end the year on a strong note, ran my first half Marathon!.",
+		challenge: "I dont particularly like running in the cold mornings, had cold and cough.",
 	},
 	{
 		key: "January",
@@ -104,8 +104,8 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+		description: "Registered for HSR 21k, training begins and started to increase my easy runs to 10k",
+		challenge: "My left knee started hurting again, had to take it slow. My Right knee felt left out, so it started hurting as well",
 	},
 ];
 
@@ -318,7 +318,7 @@ export function TimelineDemo() {
 		.filter((item) => item.totalRuns > 0);
 
 	return (
-		<div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
+		<div className="w-full bg-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
 			<div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
 				<Timeline data={timelineData} />
 				<button

@@ -49,7 +49,7 @@ export const Timeline = ({ data }) => {
 
   return (
     <div
-      className="w-full min-h-screen bg-pure-black font-sans px-4 md:px-10"
+      className="w-screen min-h-screen bg-black font-sans px-4 md:px-10"
       ref={containerRef}
     >
       <div className="max-w-7xl mx-auto text-center px-2 md:px-8 lg:px-10 align-center">
@@ -88,7 +88,7 @@ export const Timeline = ({ data }) => {
           style={{
             height: height + "px",
           }}
-          className="absolute left-5 md:left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-700 to-transparent to-[99%]  [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] "
+          className="absolute left-5 md:left-8 top-0 overflow-hidden w-[2px] bg-black [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] "
         >
           <motion.div
             style={{
