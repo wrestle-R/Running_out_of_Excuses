@@ -96,6 +96,17 @@ const monthsData = [
 		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
 		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	},
+	{
+		key: "January",
+		year: 2026,
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
+		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	},
 ];
 
 export function TimelineDemo() {
@@ -163,14 +174,12 @@ export function TimelineDemo() {
 					const month = run.jsDate.toLocaleString("default", { month: "long" });
 					const year = run.jsDate.getFullYear();
 
-					// Only include runs from 2025 and matching months
-					if (year === 2025) {
-						monthsData.forEach((m) => {
-							if (month === m.key) {
-								byMonth[m.key].push(run);
-							}
-						});
-					}
+					// Include runs from 2025 and 2026, matching the months in monthsData
+					monthsData.forEach((m) => {
+						if (month === m.key && year === m.year) {
+							byMonth[m.key].push(run);
+						}
+					});
 				});
 
 				console.log("Grouped runs by month:", byMonth);
@@ -221,88 +230,92 @@ export function TimelineDemo() {
 		);
 	}
 
-	// Build timeline data from monthsData and runs
-	const timelineData = monthsData.map((month) => {
-		const allRuns = runs[month.key] || [];
-		const topRuns = allRuns
-			.slice()
-			.sort((a, b) => b.distance_km - a.distance_km)
-			.slice(0, 3);
-		const totalRuns = allRuns.length;
-		const totalDistance = allRuns.reduce(
-			(sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0),
-			0
-		);
+	// Build timeline data from monthsData and runs - ONLY include months with data
+	const timelineData = monthsData
+		.map((month) => {
+			const allRuns = runs[month.key] || [];
+			const topRuns = allRuns
+				.slice()
+				.sort((a, b) => b.distance_km - a.distance_km)
+				.slice(0, 3);
+			const totalRuns = allRuns.length;
+			const totalDistance = allRuns.reduce(
+				(sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0),
+				0
+			);
 
-		return {
-			title: (
-				<div className="flex flex-col gap-1 md:gap-1">
-					<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-xl sm:text-2xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-6xl'} font-bold tracking-tighter uppercase mb-2 md:mb-8 text-center md:text-left`}>
-						<span className="text-white/80">{month.key} {month.year}</span>
-					</h2>
-					<div className="inline-flex w-full md:w-[60%] gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-3 md:px-4 py-1.5 md:py-2 shadow-inner">
-						<span>
-							<span className="text-white font-bold">{totalRuns}</span> runs
-						</span>
-						<span className="opacity-60">|</span>
-						<span>
-							<span className="text-white font-bold">
-								{totalDistance.toFixed(2)}
-							</span>{" "}
-							km
-						</span>
-					</div>
-					<div className="text-xs md:text-sm text-gray-400 mt-1 leading-relaxed">
-						<span className="font-bold text-white">Challenge:</span> {month.challenge}
-					</div>
-				</div>
-			),
-			content: (
-				<div>
-					<div className="text-xs sm:text-sm md:text-lg text-gray-300 mb-3 md:mb-3 font-medium italic text-left md:text-center leading-relaxed">
-						{month.description}
-					</div>
-					{/* Show top runs if available */}
-					{topRuns.length > 0 && (
-						<div className="mb-3 md:mb-4">
-							<h4 className="text-white/60 text-xs md:text-sm font-semibold mb-2 md:mb-2 text-left md:text-center">
-								Top Runs This Month
-							</h4>
-							<div className="flex flex-col sm:flex-row sm:flex-wrap justify-start md:justify-center gap-2 md:gap-2">
-								{topRuns.map((run, idx) => (
-									<div
-										key={run.id}
-										className="bg-white/10 rounded-lg px-3 md:px-3 py-2 md:py-2 text-xs md:text-xs"
-									>
-										<span className="text-white font-bold">
-											{run.distance_km}km
-										</span>
-										<span className="text-white/60 ml-1">- {run.name}</span>
-									</div>
-								))}
-							</div>
+			return {
+				monthData: month,
+				totalRuns,
+				title: (
+					<div className="flex flex-col gap-1 md:gap-1">
+						<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-xl sm:text-2xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-6xl'} font-bold tracking-tighter uppercase mb-2 md:mb-8 text-center md:text-left`}>
+							<span className="text-white/80">{month.key} {month.year}</span>
+						</h2>
+						<div className="inline-flex w-full md:w-[60%] gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-3 md:px-4 py-1.5 md:py-2 shadow-inner">
+							<span>
+								<span className="text-white font-bold">{totalRuns}</span> runs
+							</span>
+							<span className="opacity-60">|</span>
+							<span>
+								<span className="text-white font-bold">
+									{totalDistance.toFixed(2)}
+								</span>{" "}
+								km
+							</span>
 						</div>
-					)}
-					<div className="flex flex-row mt-3 md:mt-4 gap-2 md:gap-4 justify-start md:justify-center flex-wrap overflow-hidden">
-						{month.images.map((src, idx) => {
-							// Show only first 2 images on mobile, all 3 on desktop
-							if (isMobile && idx >= 2) return null;
-							
-							return (
-								<img
-									key={src}
-									src={src}
-									alt={`Run ${month.key} ${idx + 1}`}
-									className="rounded-lg md:rounded-xl h-28 sm:h-32 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition flex-shrink-0"
-									style={{ objectFit: "contain" }}
-								/>
-							);
-						})}
+						<div className="text-xs md:text-sm text-gray-400 mt-1 leading-relaxed">
+							<span className="font-bold text-white">Challenge:</span> {month.challenge}
+						</div>
 					</div>
-				</div>
-			),
-		};
-	});
+				),
+				content: (
+					<div>
+						<div className="text-xs sm:text-sm md:text-lg text-gray-300 mb-3 md:mb-3 font-medium italic text-left md:text-center leading-relaxed">
+							{month.description}
+						</div>
+						{/* Show top runs if available */}
+						{topRuns.length > 0 && (
+							<div className="mb-3 md:mb-4">
+								<h4 className="text-white/60 text-xs md:text-sm font-semibold mb-2 md:mb-2 text-left md:text-center">
+									Top Runs This Month
+								</h4>
+								<div className="flex flex-col sm:flex-row sm:flex-wrap justify-start md:justify-center gap-2 md:gap-2">
+									{topRuns.map((run, idx) => (
+										<div
+											key={run.id}
+											className="bg-white/10 rounded-lg px-3 md:px-3 py-2 md:py-2 text-xs md:text-xs"
+										>
+											<span className="text-white font-bold">
+												{run.distance_km}km
+											</span>
+											<span className="text-white/60 ml-1">- {run.name}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+						<div className="flex flex-row mt-3 md:mt-4 gap-2 md:gap-4 justify-start md:justify-center flex-wrap overflow-hidden">
+							{month.images.map((src, idx) => {
+								// Show only first 2 images on mobile, all 3 on desktop
+								if (isMobile && idx >= 2) return null;
+								
+								return (
+									<img
+										key={src}
+										src={src}
+										alt={`Run ${month.key} ${idx + 1}`}
+										className="rounded-lg md:rounded-xl h-28 sm:h-32 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition flex-shrink-0"
+										style={{ objectFit: "contain" }}
+									/>
+								);
+							})}
+						</div>
+					</div>
+				),
+			};
+		})
+		.filter((item) => item.totalRuns > 0);
 
 	return (
 		<div className="w-full bg-gradient-to-b from-black via-zinc-950 to-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
@@ -318,5 +331,6 @@ export function TimelineDemo() {
 		</div>
 	);
 }
+
 
 export default TimelineDemo;
