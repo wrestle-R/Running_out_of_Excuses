@@ -132,19 +132,24 @@ export function TimelineDemo() {
 				snapshot.forEach((doc) => {
 					const data = doc.data();
 
-					// Parse date string to JS Date - handle M/D/YYYY format
+					// Parse date string to JS Date - handle ISO and M/D/YYYY format
 					let jsDate = null;
 					if (typeof data.date === "string") {
-						// Parse "2/15/2025" as M/D/YYYY (US format)
-						const dateParts = data.date.split("/");
-						if (dateParts.length === 3) {
-							const [month, day, year] = dateParts;
-							// Create date with proper month (0-indexed in JS)
-							jsDate = new Date(
-								parseInt(year),
-								parseInt(month) - 1,
-								parseInt(day)
-							);
+						const isoDate = new Date(data.date);
+						if (!isNaN(isoDate.getTime())) {
+							jsDate = isoDate;
+						} else {
+							// Parse "2/15/2025" as M/D/YYYY (US format)
+							const dateParts = data.date.split("/");
+							if (dateParts.length === 3) {
+								const [month, day, year] = dateParts;
+								// Create date with proper month (0-indexed in JS)
+								jsDate = new Date(
+									parseInt(year),
+									parseInt(month) - 1,
+									parseInt(day)
+								);
+							}
 						}
 					}
 

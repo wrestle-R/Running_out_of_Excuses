@@ -103,8 +103,23 @@ function formatSplitPace(pace) {
 
 function formatDateToDDMMYYYY(dateStr) {
   if (!dateStr) return dateStr;
+  
+  // Try ISO date object first
+  const dateObj = new Date(dateStr);
+  if (!isNaN(dateObj.getTime())) {
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  // Fallback to MM/DD/YYYY
   const [mm, dd, yyyy] = dateStr.split('/').map(Number);
-  return `${String(dd).padStart(2, '0')}-${String(mm).padStart(2, '0')}-${yyyy}`;
+  if (dd && mm && yyyy) {
+      return `${String(dd).padStart(2, '0')}-${String(mm).padStart(2, '0')}-${yyyy}`;
+  }
+  
+  return dateStr;
 }
 
 const loadActivitiesFromFirebase = async () => {
@@ -234,8 +249,8 @@ export default function Section3() {
         
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {runs.map((run, idx) => {
-            const speed = paceToSpeed(run.pace);
-            const walk = isWalk(run.pace);
+            const speed = paceToSpeed(run.pace_min_per_km);
+            const walk = isWalk(run.pace_min_per_km);
             const desc = run.description && run.description.trim().length > 0 ? run.description : null;
             const hasSplits = run.splits && run.splits.length > 0;
             const splitCount = hasSplits ? run.splits.length : 0;
@@ -309,7 +324,7 @@ export default function Section3() {
                     </div>
                     <div>
                       <div className="text-pure-white/50 text-xs uppercase mb-1">Pace</div>
-                      <div className="text-xl font-bold">{run.pace}</div>
+                      <div className="text-xl font-bold">{formatPace(run.pace_min_per_km)}</div>
                     </div>
                     <div>
                       <div className="text-pure-white/50 text-xs uppercase mb-1">Time</div>
