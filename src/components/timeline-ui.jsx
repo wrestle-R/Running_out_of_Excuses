@@ -20,7 +20,7 @@ export const Timeline = ({ data }) => {
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 10%", "end 50%"],
+    offset: ["start 20%", "end 80%"],
   });
 
   // Only animate the tracking line up to the last timeline item (ball)
@@ -37,7 +37,23 @@ export const Timeline = ({ data }) => {
         lastBallRect.top + lastBallRect.height / 2 - containerRect.top
       );
     }
-  }, [data, (mayBeRerender) => mayBeRerender]); // force recalc on data change
+  }, [data]);
+
+  // Recalculate lastBallOffset on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (lastBallRef.current && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const lastBallRect = lastBallRef.current.getBoundingClientRect();
+        setLastBallOffset(
+          lastBallRect.top + lastBallRect.height / 2 - containerRect.top
+        );
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // The tracking line should not exceed lastBallOffset
   const heightTransform = useTransform(

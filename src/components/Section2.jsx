@@ -22,7 +22,7 @@ const Section2 = ({ scrollYProgress }) => {
 	return (
 		<motion.section
 			style={sectionStyle}
-			className='relative min-h-screen bg-pure-black text-pure-white font-montserrat py-20 flex items-center justify-center overflow-x-hidden'
+			className="relative min-h-[75vh] md:min-h-screen bg-pure-black text-pure-white font-montserrat py-20 flex items-center justify-center overflow-x-hidden"
 		>
 			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
 				<h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">
