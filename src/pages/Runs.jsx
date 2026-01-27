@@ -49,53 +49,80 @@ const CardCurtainRevealDescription = ({ children, className, isHovered }) => {
   );
 };
 
-function paceToSpeed(pace) {
-  if (pace === null || pace === undefined || pace === 'N/A') {
-    return 0;
+function paceToSpeed(pace, distanceKm, elapsedTimeMin) {
+  let paceValue = pace;
+  
+  // If pace is invalid, try to calculate from distance and time
+  if (pace === null || pace === undefined || pace === 'N/A' || pace === '') {
+    if (distanceKm && elapsedTimeMin && distanceKm > 0) {
+      paceValue = elapsedTimeMin / distanceKm;
+    } else {
+      return 0;
+    }
   }
+  
   // Handle both formats: "5.5" and "5:30/km"
-  if (typeof pace === 'string' && pace.includes(':')) {
-    const [min, rest] = pace.split(":");
+  if (typeof paceValue === 'string' && paceValue.includes(':')) {
+    const [min, rest] = paceValue.split(":");
     const [sec] = rest.split("/");
     const totalMin = parseInt(min, 10) + parseInt(sec, 10) / 60;
     if (!totalMin) return 0;
     return +(60 / totalMin).toFixed(2);
   }
   // Handle decimal format
-  const paceNum = parseFloat(pace);
+  const paceNum = parseFloat(paceValue);
   if (isNaN(paceNum) || !paceNum) return 0;
   return +(60 / paceNum).toFixed(2);
 }
 
-function isWalk(pace) {
-  if (pace === null || pace === undefined || pace === 'N/A') {
-    return false; // Default to run if no pace available
+function isWalk(pace, distanceKm, elapsedTimeMin) {
+  let paceValue = pace;
+  
+  // If pace is invalid, try to calculate from distance and time
+  if (pace === null || pace === undefined || pace === 'N/A' || pace === '') {
+    if (distanceKm && elapsedTimeMin && distanceKm > 0) {
+      paceValue = elapsedTimeMin / distanceKm;
+    } else {
+      return false; // Default to run if no pace available
+    }
   }
+  
   // Handle both formats: "5.5" and "5:30/km"
-  if (typeof pace === 'string' && pace.includes(':')) {
-    const [min, rest] = pace.split(":");
+  if (typeof paceValue === 'string' && paceValue.includes(':')) {
+    const [min, rest] = paceValue.split(":");
     const [sec] = rest.split("/");
     const totalSec = parseInt(min, 10) * 60 + parseInt(sec, 10);
     return totalSec >= 600; // 10:00/km or slower
   }
   // Handle decimal format
-  const paceNum = parseFloat(pace);
+  const paceNum = parseFloat(paceValue);
   if (isNaN(paceNum)) return false;
   return paceNum >= 10; // 10 min/km or slower
 }
 
-function formatPace(pace) {
-  if (pace === null || pace === undefined || pace === 'N/A') {
-    return '—';
+function formatPace(pace, distanceKm, elapsedTimeMin) {
+  // If pace is valid, use it
+  if (pace !== null && pace !== undefined && pace !== 'N/A' && pace !== '') {
+    if (typeof pace === 'string' && pace.includes(':')) {
+      return pace;
+    }
+    const paceNum = parseFloat(pace);
+    if (paceNum && !isNaN(paceNum)) {
+      const minutes = Math.floor(paceNum);
+      const seconds = Math.round((paceNum - minutes) * 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+    }
   }
-  if (typeof pace === 'string' && pace.includes(':')) {
-    return pace;
+  
+  // Calculate pace from distance and time if available
+  if (distanceKm && elapsedTimeMin && distanceKm > 0) {
+    const calculatedPace = elapsedTimeMin / distanceKm;
+    const minutes = Math.floor(calculatedPace);
+    const seconds = Math.round((calculatedPace - minutes) * 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
   }
-  const paceNum = parseFloat(pace);
-  if (!paceNum || isNaN(paceNum)) return '—';
-  const minutes = Math.floor(paceNum);
-  const seconds = Math.round((paceNum - minutes) * 60);
-  return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+  
+  return '—';
 }
 
 function formatTime(minutes) {
@@ -233,8 +260,8 @@ export default function Section3() {
         
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {runs.map((run, idx) => {
-            const speed = paceToSpeed(run.pace_min_per_km);
-            const walk = isWalk(run.pace_min_per_km);
+            const speed = paceToSpeed(run.pace_min_per_km, run.distance_km, run.elapsed_time_min);
+            const walk = isWalk(run.pace_min_per_km, run.distance_km, run.elapsed_time_min);
             const desc = run.description && run.description.trim().length > 0 ? run.description : null;
             const hasSplits = run.splits && run.splits.length > 0;
             const splitCount = hasSplits ? run.splits.length : 0;
@@ -308,7 +335,7 @@ export default function Section3() {
                     </div>
                     <div>
                       <div className="text-pure-white/50 text-xs uppercase mb-1">Pace</div>
-                      <div className="text-xl font-bold">{formatPace(run.pace_min_per_km)}</div>
+                      <div className="text-xl font-bold">{formatPace(run.pace_min_per_km, run.distance_km, run.elapsed_time_min)}</div>
                     </div>
                     <div>
                       <div className="text-pure-white/50 text-xs uppercase mb-1">Time</div>
