@@ -50,6 +50,9 @@ const CardCurtainRevealDescription = ({ children, className, isHovered }) => {
 };
 
 function paceToSpeed(pace) {
+  if (pace === null || pace === undefined || pace === 'N/A') {
+    return 0;
+  }
   // Handle both formats: "5.5" and "5:30/km"
   if (typeof pace === 'string' && pace.includes(':')) {
     const [min, rest] = pace.split(":");
@@ -60,10 +63,14 @@ function paceToSpeed(pace) {
   }
   // Handle decimal format
   const paceNum = parseFloat(pace);
-  return paceNum ? +(60 / paceNum).toFixed(2) : 0;
+  if (isNaN(paceNum) || !paceNum) return 0;
+  return +(60 / paceNum).toFixed(2);
 }
 
 function isWalk(pace) {
+  if (pace === null || pace === undefined || pace === 'N/A') {
+    return false; // Default to run if no pace available
+  }
   // Handle both formats: "5.5" and "5:30/km"
   if (typeof pace === 'string' && pace.includes(':')) {
     const [min, rest] = pace.split(":");
@@ -73,15 +80,19 @@ function isWalk(pace) {
   }
   // Handle decimal format
   const paceNum = parseFloat(pace);
+  if (isNaN(paceNum)) return false;
   return paceNum >= 10; // 10 min/km or slower
 }
 
 function formatPace(pace) {
+  if (pace === null || pace === undefined || pace === 'N/A') {
+    return '—';
+  }
   if (typeof pace === 'string' && pace.includes(':')) {
     return pace;
   }
   const paceNum = parseFloat(pace);
-  if (!paceNum) return 'N/A';
+  if (!paceNum || isNaN(paceNum)) return '—';
   const minutes = Math.floor(paceNum);
   const seconds = Math.round((paceNum - minutes) * 60);
   return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
@@ -216,12 +227,7 @@ export default function Section3() {
         {!loading && runs.length === 0 && !error && (
           <div className="text-center py-20">
             <p className="text-xl text-pure-white/60">No activities found yet.</p>
-            <button
-              className="mt-4 px-6 py-2 rounded-full bg-blue-600 text-pure-white font-semibold hover:bg-blue-700 transition"
-              onClick={() => navigate("/refresh")}
-            >
-              Load Activities
-            </button>
+            <p className="text-sm text-pure-white/40 mt-2">Activities will sync automatically.</p>
           </div>
         )}
         
