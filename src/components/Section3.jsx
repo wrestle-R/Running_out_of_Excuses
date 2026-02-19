@@ -107,6 +107,17 @@ const monthsData = [
 		description: "Registered for HSR 21k, training begins and started to increase my easy runs to 10k",
 		challenge: "My left knee started hurting again, had to take it slow. My Right knee felt left out, so it started hurting as well",
 	},
+	{
+		key: "February",
+		year: 2026,
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
+		description: "And the Downfall begins, after my good start to the year slowed down drastically",
+		challenge: "Was tired all the time, my legs were hurting and really struggled to make time for runs. Even on days I would have otherwise gone for a run I didn't go",
+	},
 ];
 
 export function TimelineDemo() {
