@@ -126,8 +126,19 @@ const monthsData = [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		challenge: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+		description: "Marathon Postoned, and started a 150km challenge",
+		challenge: "The heat makes it very hard to run, that combined with hefty college workload combined with the sweaty heat made long runs feel like hell",
+	},
+	{
+		key: "April",
+		year: 2026,
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
+		description: "Lorem Ipsum dolor sit amet, consectetur adipiscing elit. Donec vel sapien eget nunc gravida tincidunt. Sed at felis ac nisl efficitur commodo.",
+		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel sapien eget nunc gravida tincidunt. Sed at felis ac nisl efficitur commodo.",
 	},
 ];
 
