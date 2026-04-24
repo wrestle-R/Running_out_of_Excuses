@@ -5,6 +5,11 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Running Out of Excuses",
   description: "Road to marathon running journal",
+  icons: {
+    icon: "/runny-white-nobg.png",
+    shortcut: "/runny-white-nobg.png",
+    apple: "/runny-white-nobg.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
