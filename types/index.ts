@@ -36,6 +36,7 @@ export type SyncResult = {
   updated?: number;
   totalCount?: number;
   newCount?: number;
+  removedDuplicateCsvRuns?: number;
 };
 
 export type ServerEnv = {

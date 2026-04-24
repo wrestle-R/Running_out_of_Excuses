@@ -1,7 +1,7 @@
 import { getServerEnv } from "@/lib/server/env";
 import { jsonResponse, optionsResponse, textResponse } from "@/lib/server/http";
 import { getLatestStravaActivities, iterateStravaActivityPages } from "@/lib/server/strava";
-import { countRuns, upsertRuns } from "@/services/runService";
+import { countRuns, removeLegacyCsvDuplicates, upsertRuns } from "@/services/runService";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +38,7 @@ export async function POST() {
         inserted += pageResult.inserted;
         updated += pageResult.updated;
       }
+      const cleanup = await removeLegacyCsvDuplicates();
 
       return jsonResponse({
         message: "Initial seed completed",
@@ -52,12 +53,14 @@ export async function POST() {
         failed,
         inserted,
         updated,
+        removedDuplicateCsvRuns: cleanup.removed,
         newCount: inserted,
       });
     }
 
     const activities = await getLatestStravaActivities(env, 50);
     const result = await upsertRuns(activities);
+    const cleanup = await removeLegacyCsvDuplicates();
 
     return jsonResponse({
       message: "Sync completed",
@@ -65,6 +68,7 @@ export async function POST() {
       fetched: activities.length,
       totalCount: result.total,
       newCount: result.inserted,
+      removedDuplicateCsvRuns: cleanup.removed,
       ...result,
     });
   } catch (error) {
