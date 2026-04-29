@@ -73,8 +73,9 @@ export async function POST() {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Unable to sync runs:", error);
     return jsonResponse(
-      { error: message },
+      { error: "Unable to sync runs" },
       { status: message.includes("rate limit exceeded") ? 429 : 500 }
     );
   }

@@ -236,7 +236,7 @@ const Refresh = () => {
       setTimeout(() => setStatus(''), 3000);
     } catch (err) {
       console.error('Export error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during export');
+      setError('Unable to export CSV. Please retry in a moment.');
       setStatus('');
     } finally {
       setLoading(false);
@@ -255,7 +255,7 @@ const Refresh = () => {
 
     } catch (err) {
       console.error('Refresh error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during refresh');
+      setError('Unable to refresh activities. Please retry in a moment.');
       setStatus('❌ Refresh failed');
     } finally {
       setLoading(false);

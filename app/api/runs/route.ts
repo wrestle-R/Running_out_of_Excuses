@@ -12,8 +12,9 @@ export async function GET() {
     const runs = await listRuns();
     return jsonResponse(runs);
   } catch (error) {
+    console.error("Unable to load runs:", error);
     return jsonResponse(
-      { error: error instanceof Error ? error.message : "Unable to load runs" },
+      { error: "Unable to load runs" },
       { status: 500 }
     );
   }

@@ -200,7 +200,8 @@ export function TimelineDemo() {
 				}));
 			} catch (e) {
 				if (!cancelled) {
-					setError(e instanceof Error ? e.message : "Unable to load timeline");
+					console.error("Unable to load timeline:", e);
+					setError("Unable to load timeline");
 				}
 			} finally {
 				if (!cancelled) {
@@ -376,7 +377,9 @@ export function TimelineDemo() {
 				{error && !loading && (
 					<div className="w-full max-w-xl rounded-lg border border-white/10 bg-white/[0.04] px-6 py-10 text-center">
 						<p className="text-lg font-bold text-white">Unable to load timeline.</p>
-						<p className="mt-2 text-sm text-white/45">{error}</p>
+						<p className="mt-2 text-sm text-white/45">
+							Please retry in a moment.
+						</p>
 						<button
 							type="button"
 							className="mt-5 rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/20"

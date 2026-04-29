@@ -389,7 +389,8 @@ export default function Runs({
       });
       setNextCursor(page.nextCursor);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load more runs");
+      console.error("Unable to load more runs:", err);
+      setError("Unable to load more runs");
     } finally {
       loadingRef.current = false;
       setLoadingMore(false);

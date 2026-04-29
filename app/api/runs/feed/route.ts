@@ -17,8 +17,9 @@ export async function GET(request: Request) {
     const page = await listRunsPage({ cursor, limit });
     return jsonResponse(page);
   } catch (error) {
+    console.error("Unable to load runs feed:", error);
     return jsonResponse(
-      { error: error instanceof Error ? error.message : "Unable to load runs feed" },
+      { error: "Unable to load runs" },
       { status: 500 }
     );
   }

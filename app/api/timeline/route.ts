@@ -16,8 +16,9 @@ export async function GET(request: Request) {
     const summary = await listTimelineYearSummary(year);
     return jsonResponse(summary);
   } catch (error) {
+    console.error("Unable to load timeline:", error);
     return jsonResponse(
-      { error: error instanceof Error ? error.message : "Unable to load timeline" },
+      { error: "Unable to load timeline" },
       { status: 500 }
     );
   }

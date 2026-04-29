@@ -14,8 +14,9 @@ export async function GET() {
     return jsonResponse(activities);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Unable to load activities:", error);
     return jsonResponse(
-      { error: message },
+      { error: "Unable to load activities" },
       { status: message.includes("rate limit exceeded") ? 429 : 500 }
     );
   }
