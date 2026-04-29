@@ -4,8 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Section1 from './Section1';
 import Section2 from './Section2';
 import { TimelineDemo } from './Section3';
-import { fetchRuns } from "@/lib/api";
-import type { RunActivity } from "@/types";
+import { fetchRunsPage } from "@/lib/api";
 
 const HeroScrollAnimation = () => {
   const container = useRef(null);
@@ -14,24 +13,22 @@ const HeroScrollAnimation = () => {
     offset: ['start start', 'end end'],
   });
 
-  // Fetch runs for footer stats
-  const [runs, setRuns] = useState<RunActivity[]>([]);
+  // Fetch lightweight footer stats without downloading every run and split.
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [totalRuns, setTotalRuns] = useState(0);
   useEffect(() => {
-    async function loadRuns() {
+    async function loadFooterStats() {
       try {
-        const allRuns = await fetchRuns();
-        setRuns(allRuns);
+        const page = await fetchRunsPage({ limit: 1 });
+        setTotalDistance(page.totalDistanceKm);
+        setTotalRuns(page.totalRuns);
       } catch {
-        setRuns([]);
+        setTotalDistance(0);
+        setTotalRuns(0);
       }
     }
-    loadRuns();
+    loadFooterStats();
   }, []);
-  const totalDistance = runs.reduce(
-    (sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0),
-    0
-  );
-  const totalRuns = runs.length;
 
   return (
     <main ref={container} className='relative h-[200vh] bg-pure-black'>

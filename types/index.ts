@@ -46,6 +46,26 @@ export type RunsPage = {
   totalDistanceKm: number;
 };
 
+export type TimelineTopRun = {
+  id: string;
+  name: string;
+  distance_km: number;
+  date: string;
+};
+
+export type TimelineMonthSummary = {
+  year: number;
+  month: number;
+  totalRuns: number;
+  totalDistanceKm: number;
+  topRuns: TimelineTopRun[];
+};
+
+export type TimelineYearSummary = {
+  year: number;
+  months: TimelineMonthSummary[];
+};
+
 export type ServerEnv = {
   STRAVA_CLIENT_ID?: string;
   STRAVA_CLIENT_SECRET?: string;

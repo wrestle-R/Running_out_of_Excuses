@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getLegacyCsvDuplicateIds, listRunsPage } from "./runService";
+import { getLegacyCsvDuplicateIds, listRunsPage, listTimelineYearSummary } from "./runService";
 
 const prismaMock = vi.hoisted(() => ({
   run: {
@@ -188,6 +188,79 @@ describe("listRunsPage", () => {
           },
         ],
       },
+    });
+  });
+});
+
+describe("listTimelineYearSummary", () => {
+  beforeEach(() => {
+    prismaMock.run.aggregate.mockReset();
+    prismaMock.run.count.mockReset();
+    prismaMock.run.findMany.mockReset();
+  });
+
+  it("loads only lightweight run fields for one year and groups them by month", async () => {
+    prismaMock.run.findMany.mockResolvedValue([
+      dbRun({
+        id: "april-long",
+        stravaId: BigInt("201"),
+        startDate: "2026-04-06T12:23:27.000Z",
+        distanceKm: 7,
+      }),
+      dbRun({
+        id: "april-short",
+        stravaId: BigInt("202"),
+        startDate: "2026-04-01T00:49:03.000Z",
+        distanceKm: 5,
+      }),
+      dbRun({
+        id: "march-run",
+        stravaId: BigInt("203"),
+        startDate: "2026-03-27T12:29:07.000Z",
+        distanceKm: 10,
+      }),
+    ]);
+
+    const summary = await listTimelineYearSummary(2026);
+
+    expect(prismaMock.run.findMany).toHaveBeenCalledWith({
+      orderBy: [{ startDate: "desc" }, { id: "asc" }],
+      select: {
+        id: true,
+        stravaId: true,
+        name: true,
+        startDate: true,
+        distanceKm: true,
+      },
+      where: {
+        startDate: {
+          gte: new Date("2026-01-01T00:00:00.000Z"),
+          lt: new Date("2027-01-01T00:00:00.000Z"),
+        },
+      },
+    });
+    expect(summary.year).toBe(2026);
+    expect(summary.months).toHaveLength(12);
+    expect(summary.months[3]).toMatchObject({
+      year: 2026,
+      month: 4,
+      totalRuns: 2,
+      totalDistanceKm: 12,
+      topRuns: [
+        {
+          id: "201",
+          distance_km: 7,
+        },
+        {
+          id: "202",
+          distance_km: 5,
+        },
+      ],
+    });
+    expect(summary.months[2]).toMatchObject({
+      month: 3,
+      totalRuns: 1,
+      totalDistanceKm: 10,
     });
   });
 });

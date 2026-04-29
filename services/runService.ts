@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import type { RunActivity, RunSplit, RunsPage } from "@/types";
+import type { RunActivity, RunSplit, RunsPage, TimelineYearSummary } from "@/types";
 import type { NormalizedStravaActivity } from "@/lib/server/strava";
 
 type RunDuplicateRecord = {
@@ -23,6 +23,7 @@ type RunPageRecord = Parameters<typeof toRunActivity>[0];
 
 const DEFAULT_RUN_PAGE_LIMIT = 24;
 const MAX_RUN_PAGE_LIMIT = 96;
+const MONTHS_IN_YEAR = 12;
 
 function asSplitArray(value: Prisma.JsonValue): RunSplit[] {
   return Array.isArray(value) ? (value as RunSplit[]) : [];
@@ -236,6 +237,62 @@ export async function listRunsPage({
     nextCursor: hasMore && lastPageRecord ? encodeRunCursor(lastPageRecord) : null,
     totalRuns,
     totalDistanceKm: totalDistance._sum.distanceKm ?? 0,
+  };
+}
+
+export async function listTimelineYearSummary(year: number): Promise<TimelineYearSummary> {
+  const normalizedYear = Number.isFinite(year) ? Math.trunc(year) : new Date().getFullYear();
+  const startDate = new Date(Date.UTC(normalizedYear, 0, 1));
+  const endDate = new Date(Date.UTC(normalizedYear + 1, 0, 1));
+  const months = Array.from({ length: MONTHS_IN_YEAR }, (_, index) => ({
+    year: normalizedYear,
+    month: index + 1,
+    totalRuns: 0,
+    totalDistanceKm: 0,
+    topRuns: [],
+  }));
+
+  const runs = await prisma.run.findMany({
+    orderBy: [{ startDate: "desc" }, { id: "asc" }],
+    select: {
+      id: true,
+      stravaId: true,
+      name: true,
+      startDate: true,
+      distanceKm: true,
+    },
+    where: {
+      startDate: {
+        gte: startDate,
+        lt: endDate,
+      },
+    },
+  });
+
+  for (const run of runs) {
+    const monthIndex = run.startDate.getUTCMonth();
+    const month = months[monthIndex];
+
+    month.totalRuns += 1;
+    month.totalDistanceKm += run.distanceKm;
+    month.topRuns.push({
+      id: run.stravaId.toString(),
+      name: run.name,
+      distance_km: run.distanceKm,
+      date: run.startDate.toISOString(),
+    });
+  }
+
+  for (const month of months) {
+    month.totalDistanceKm = Number(month.totalDistanceKm.toFixed(2));
+    month.topRuns = month.topRuns
+      .sort((a, b) => b.distance_km - a.distance_km)
+      .slice(0, 3);
+  }
+
+  return {
+    year: normalizedYear,
+    months,
   };
 }
 

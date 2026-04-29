@@ -66,35 +66,35 @@ export const Timeline = ({ data }) => {
 
   return (
     <div
-      className="w-screen min-h-screen bg-black font-sans px-4 md:px-10"
+      className="w-full min-h-screen bg-black font-sans px-2 md:px-4"
       ref={containerRef}
     >
-      <div className="max-w-7xl mx-auto text-center px-2 md:px-8 lg:px-10 align-center">
-        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-6 md:mb-10 text-center">
+      <div className="max-w-7xl mx-auto text-center px-1 md:px-3 align-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-2 md:mb-3 text-center">
           <span className="text-white/90">MAH</span> <span className="text-white/80">TIMELINE</span>
         </h2>
       </div>
 
-      <div ref={ref} className="relative max-w-7xl mx-auto pb-10 md:pb-20">
+      <div ref={ref} className="relative max-w-7xl mx-auto pb-4 md:pb-10">
         {data.map((item, index) => (
           <div
             key={index}
-            className="flex justify-start pt-8 md:pt-40 md:gap-10"
+            className="flex justify-start pt-5 md:pt-24 md:gap-6"
           >
             <div
-              className="sticky flex flex-col md:flex-row z-40 items-center top-20 md:top-40 self-start max-w-xs lg:max-w-sm md:w-full"
+              className="sticky flex flex-col md:flex-row z-40 items-center top-16 md:top-28 self-start max-w-xs lg:max-w-sm md:w-full"
               ref={index === data.length - 1 ? lastBallRef : undefined}
             >
               <div className="h-8 md:h-10 absolute left-2 md:left-3 w-8 md:w-10 rounded-full bg-pure-black flex items-center justify-center">
                 <div className="h-3 w-3 md:h-4 md:w-4 rounded-full bg-neutral-800 border border-neutral-700 p-1.5 md:p-2" />
               </div>
-              <h3 className="hidden md:block text-xl md:pl-20 md:text-5xl font-bold text-gray-400">
+              <h3 className="hidden md:block text-xl md:pl-16 md:text-4xl font-bold text-gray-400">
                 {item.title}
               </h3>
             </div>
 
-            <div className="relative pl-14 pr-2 md:pl-4 md:pr-4 w-full">
-              <h3 className="md:hidden block text-lg sm:text-xl mb-3 md:mb-4 text-left font-bold text-gray-400">
+            <div className="relative pl-12 pr-1 md:pl-2 md:pr-2 w-full">
+              <h3 className="md:hidden block text-lg sm:text-xl mb-2 text-left font-bold text-gray-400">
                 {item.title}
               </h3>
               <div className="text-pure-white">{item.content}</div>

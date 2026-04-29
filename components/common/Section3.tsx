@@ -2,13 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { Timeline } from "./timeline-ui";
 import { useRouter } from "next/navigation";
-import { fetchRuns } from "@/lib/api";
-import type { RunActivity } from "@/types";
+import { fetchTimelineYear } from "@/lib/api";
+import type { TimelineYearSummary } from "@/types";
 
 // Month data array for May, June, July
 const monthsData = [
 	{
 		key: "May",
+		month: 5,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432188/1_mdhq5f.jpg",
@@ -21,6 +22,7 @@ const monthsData = [
 	},
 	{
 		key: "June",
+		month: 6,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/4_l532dq.jpg",
@@ -33,6 +35,7 @@ const monthsData = [
 	},
 	{
 		key: "July",
+		month: 7,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/7_mncp5f.jpg",
@@ -44,6 +47,7 @@ const monthsData = [
 	},
 	{
 		key: "August",
+		month: 8,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
@@ -55,6 +59,7 @@ const monthsData = [
 	},
 	{
 		key: "September",
+		month: 9,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432197/13_ke9xps.jpg",
@@ -66,6 +71,7 @@ const monthsData = [
 	},
 	{
 		key: "October",
+		month: 10,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432193/16_pwiik2.jpg",
@@ -77,6 +83,7 @@ const monthsData = [
 	},
 	{
 		key: "November",
+		month: 11,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/19_qghitb.jpg",
@@ -88,6 +95,7 @@ const monthsData = [
 	},
 	{
 		key: "December",
+		month: 12,
 		year: 2025,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
@@ -99,6 +107,7 @@ const monthsData = [
 	},
 	{
 		key: "January",
+		month: 1,
 		year: 2026,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
@@ -110,6 +119,7 @@ const monthsData = [
 	},
 	{
 		key: "February",
+		month: 2,
 		year: 2026,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
@@ -121,6 +131,7 @@ const monthsData = [
 	},
 	{
 		key: "March",
+		month: 3,
 		year: 2026,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
@@ -132,20 +143,27 @@ const monthsData = [
 	},
 	{
 		key: "April",
+		month: 4,
 		year: 2026,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Lorem Ipsum dolor sit amet, consectetur adipiscing elit. Donec vel sapien eget nunc gravida tincidunt. Sed at felis ac nisl efficitur commodo.",
-		challenge: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel sapien eget nunc gravida tincidunt. Sed at felis ac nisl efficitur commodo.",
+		description: "New lows have been hit ran the first week and then stopped entirely after the first week",
+		challenge: "Busy schedule with the Internship and the College submission and finals, and the heat and humidity is the worst thing in this world",
 	},
 ];
 
+const availableYears = Array.from(new Set(monthsData.map((month) => month.year))).sort(
+	(a, b) => b - a
+);
+
 export function TimelineDemo() {
-	const [runs, setRuns] = useState<Record<string, Array<RunActivity & { jsDate?: Date | null }>>>({});
+	const [selectedYear, setSelectedYear] = useState(availableYears[0]);
+	const [timelineByYear, setTimelineByYear] = useState<Record<number, TimelineYearSummary>>({});
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const router = useRouter();
 
@@ -160,128 +178,54 @@ export function TimelineDemo() {
 	}, []);
 
 	useEffect(() => {
-		async function loadTimelineRuns() {
-			try {
-				const activities = await fetchRuns();
-				const allRuns: Array<RunActivity & { jsDate?: Date | null }> = [];
-				activities.forEach((data) => {
+		let cancelled = false;
 
-					// Parse date string to JS Date - handle ISO and M/D/YYYY format
-					let jsDate: Date | null = null;
-					if (typeof data.date === "string") {
-						const isoDate = new Date(data.date);
-						if (!isNaN(isoDate.getTime())) {
-							jsDate = isoDate;
-						} else {
-							// Parse "2/15/2025" as M/D/YYYY (US format)
-							const dateParts = data.date.split("/");
-							if (dateParts.length === 3) {
-								const [month, day, year] = dateParts;
-								// Create date with proper month (0-indexed in JS)
-								jsDate = new Date(
-									parseInt(year),
-									parseInt(month) - 1,
-									parseInt(day)
-								);
-							}
-						}
-					}
-
-					// Debug log to see what we're getting
-					console.log("Processing activity:", {
-						name: data.name,
-						originalDate: data.date,
-						parsedDate: jsDate,
-						month: jsDate
-							? jsDate.toLocaleString("default", { month: "long" })
-							: "Invalid",
-					});
-
-					allRuns.push({ ...data, jsDate });
-				});
-
-				// Group runs by month name (May, June, July)
-				const byMonth: Record<string, Array<RunActivity & { jsDate?: Date | null }>> = {};
-				monthsData.forEach((m) => (byMonth[m.key] = []));
-
-				allRuns.forEach((run) => {
-					if (!run.jsDate || Number.isNaN(run.jsDate.getTime())) {
-						console.warn("Invalid date for run:", run.name, run.date);
-						return;
-					}
-
-					const month = run.jsDate.toLocaleString("default", { month: "long" });
-					const year = run.jsDate.getFullYear();
-
-					// Include runs from 2025 and 2026, matching the months in monthsData
-					monthsData.forEach((m) => {
-						if (month === m.key && year === m.year) {
-							byMonth[m.key].push(run);
-						}
-					});
-				});
-
-				console.log("Grouped runs by month:", byMonth);
-				setRuns(byMonth);
-			} catch (e) {
-				console.error("Error fetching runs:", e);
-				// fallback to empty
-				const empty: Record<string, Array<RunActivity & { jsDate?: Date | null }>> = {};
-				monthsData.forEach((m) => (empty[m.key] = []));
-				setRuns(empty);
-			} finally {
+		async function loadTimelineYear() {
+			if (timelineByYear[selectedYear]) {
 				setLoading(false);
+				setError(null);
+				return;
+			}
+
+			try {
+				setLoading(true);
+				setError(null);
+				const summary = await fetchTimelineYear(selectedYear);
+
+				if (cancelled) return;
+
+				setTimelineByYear((current) => ({
+					...current,
+					[selectedYear]: summary,
+				}));
+			} catch (e) {
+				if (!cancelled) {
+					setError(e instanceof Error ? e.message : "Unable to load timeline");
+				}
+			} finally {
+				if (!cancelled) {
+					setLoading(false);
+				}
 			}
 		}
-		loadTimelineRuns();
-	}, []);
 
-	// Wait for runs to load
-	const ready = monthsData.every((m) => Array.isArray(runs[m.key]));
+		loadTimelineYear();
 
-	if (!ready || loading) {
-		return (
-			<div className="w-full flex items-center justify-center text-gray-400 py-12">
-				<div className="flex flex-col items-center gap-4">
-					<svg
-						className="animate-spin h-8 w-8 text-pure-white"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<circle
-							className="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							strokeWidth="4"
-						></circle>
-						<path
-							className="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8v8z"
-						></path>
-					</svg>
-					<span>Loading timeline data...</span>
-				</div>
-			</div>
-		);
-	}
+		return () => {
+			cancelled = true;
+		};
+	}, [selectedYear, timelineByYear]);
 
-	// Build timeline data from monthsData and runs - ONLY include months with data
+	const selectedSummary = timelineByYear[selectedYear];
+
+	// Build timeline data from month copy and lightweight year summary.
 	const timelineData = monthsData
+		.filter((month) => month.year === selectedYear)
 		.map((month) => {
-			const allRuns = runs[month.key] || [];
-			const topRuns = allRuns
-				.slice()
-				.sort((a, b) => b.distance_km - a.distance_km)
-				.slice(0, 3);
-			const totalRuns = allRuns.length;
-			const totalDistance = allRuns.reduce(
-				(sum, run) => sum + (typeof run.distance_km === "number" ? run.distance_km : 0),
-				0
-			);
+			const monthSummary = selectedSummary?.months.find((item) => item.month === month.month);
+			const topRuns = monthSummary?.topRuns ?? [];
+			const totalRuns = monthSummary?.totalRuns ?? 0;
+			const totalDistance = monthSummary?.totalDistanceKm ?? 0;
 
 			return {
 				monthData: month,
@@ -359,7 +303,97 @@ export function TimelineDemo() {
 	return (
 		<div className="w-full bg-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
 			<div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
-				<Timeline data={timelineData} />
+				<div className="mb-6 w-full max-w-md px-4">
+					<div className="mb-3 flex items-end justify-between">
+						<div>
+							<div className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/35">
+								Running Since
+							</div>
+							<div className="mt-1 text-xl font-black leading-none text-white">
+								2025 <span className="text-white/35">to</span> 2026
+							</div>
+						</div>
+						<div className="text-right text-xs font-bold uppercase tracking-wider text-white/45">
+							{selectedYear}
+						</div>
+					</div>
+
+					<div className="relative rounded-full border border-white/10 bg-white/[0.06] p-1.5">
+						<div className="absolute left-7 right-7 top-1/2 h-px -translate-y-1/2 bg-white/15" />
+						<div className="relative grid grid-cols-2 gap-1">
+							{availableYears.slice().reverse().map((year) => {
+								const active = selectedYear === year;
+
+								return (
+									<button
+										key={year}
+										type="button"
+										className={`relative flex h-12 items-center justify-center rounded-full text-sm font-black transition ${
+											active
+												? "bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.18)]"
+												: "text-white/55 hover:bg-white/10 hover:text-white"
+										}`}
+										onClick={() => setSelectedYear(year)}
+										aria-pressed={active}
+									>
+										<span className={`mr-2 size-2 rounded-full ${active ? "bg-black" : "bg-white/35"}`} />
+										{year}
+									</button>
+								);
+							})}
+						</div>
+					</div>
+				</div>
+
+				{loading && (
+					<div className="w-full flex items-center justify-center text-gray-400 py-12">
+						<div className="flex flex-col items-center gap-4">
+							<svg
+								className="animate-spin h-8 w-8 text-pure-white"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle
+									className="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									strokeWidth="4"
+								></circle>
+								<path
+									className="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8v8z"
+								></path>
+							</svg>
+							<span>Loading {selectedYear} timeline...</span>
+						</div>
+					</div>
+				)}
+
+				{error && !loading && (
+					<div className="w-full max-w-xl rounded-lg border border-white/10 bg-white/[0.04] px-6 py-10 text-center">
+						<p className="text-lg font-bold text-white">Unable to load timeline.</p>
+						<p className="mt-2 text-sm text-white/45">{error}</p>
+						<button
+							type="button"
+							className="mt-5 rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/20"
+							onClick={() => {
+								setTimelineByYear((current) => {
+									const next = { ...current };
+									delete next[selectedYear];
+									return next;
+								});
+							}}
+						>
+							Retry
+						</button>
+					</div>
+				)}
+
+				{!loading && !error && <Timeline data={timelineData} />}
 				<button
 					className="mt-6 md:mt-8 px-6 py-2.5 md:px-5 md:py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur active:scale-95"
 					onClick={() => router.push("/runs")}

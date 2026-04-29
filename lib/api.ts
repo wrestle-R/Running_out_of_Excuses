@@ -1,4 +1,4 @@
-import type { RunActivity, RunsPage, SyncResult } from "@/types";
+import type { RunActivity, RunsPage, SyncResult, TimelineYearSummary } from "@/types";
 
 async function readJson<T>(response: Response): Promise<T> {
   const data = await response.json();
@@ -36,6 +36,14 @@ export async function fetchRunsPage({
   });
 
   return readJson<RunsPage>(response);
+}
+
+export async function fetchTimelineYear(year: number) {
+  const response = await fetch(`/api/timeline?year=${encodeURIComponent(String(year))}`, {
+    cache: "no-store",
+  });
+
+  return readJson<TimelineYearSummary>(response);
 }
 
 export async function syncLatestRuns() {
