@@ -1,5 +1,5 @@
 "use client";
-import { useTransform, motion } from 'framer-motion';
+import { useReducedMotion, useTransform, motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
 
 const TextReveal = ({ text, delay = 0 }) => {
@@ -57,28 +57,38 @@ const TextReveal = ({ text, delay = 0 }) => {
   );
 };
 
-const Section1 = ({ scrollYProgress }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  
+function useDesktopMotion() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const query = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(query.matches);
+
+    update();
+    query.addEventListener("change", update);
+
+    return () => query.removeEventListener("change", update);
   }, []);
+
+  return isDesktop;
+}
+
+const Section1 = ({ scrollYProgress }) => {
+  const isDesktop = useDesktopMotion();
+  const reduceMotion = useReducedMotion();
   
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, -2]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3]);
   
-  const sectionStyle = isMobile ? {} : { scale, rotate, opacity };
+  const sectionStyle = isDesktop && !reduceMotion
+    ? { scale, rotate, opacity, willChange: "transform, opacity" }
+    : {};
   
   return (
     <motion.section
       style={sectionStyle}
-      className='sticky top-0 h-screen bg-pure-white flex flex-col items-center justify-center text-pure-black overflow-hidden font-montserrat'
+      className='sticky top-0 h-screen bg-pure-white flex flex-col items-center justify-center text-pure-black overflow-hidden font-montserrat transform-gpu'
     >
       {/* Gradient overlay */}
       <div className='absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/80'></div>

@@ -1,5 +1,5 @@
 "use client";
-import { useScroll } from 'motion/react';
+import { useScroll } from 'framer-motion';
 import React, { useRef, useEffect, useState } from 'react';
 import Section1 from './Section1';
 import Section2 from './Section2';

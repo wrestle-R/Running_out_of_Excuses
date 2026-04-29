@@ -39,6 +39,13 @@ export type SyncResult = {
   removedDuplicateCsvRuns?: number;
 };
 
+export type RunsPage = {
+  runs: RunActivity[];
+  nextCursor: string | null;
+  totalRuns: number;
+  totalDistanceKm: number;
+};
+
 export type ServerEnv = {
   STRAVA_CLIENT_ID?: string;
   STRAVA_CLIENT_SECRET?: string;

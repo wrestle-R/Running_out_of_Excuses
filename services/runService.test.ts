@@ -1,6 +1,18 @@
 import type { Prisma } from "@prisma/client";
-import { describe, expect, it } from "vitest";
-import { getLegacyCsvDuplicateIds } from "./runService";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getLegacyCsvDuplicateIds, listRunsPage } from "./runService";
+
+const prismaMock = vi.hoisted(() => ({
+  run: {
+    aggregate: vi.fn(),
+    count: vi.fn(),
+    findMany: vi.fn(),
+  },
+}));
+
+vi.mock("@/lib/db", () => ({
+  prisma: prismaMock,
+}));
 
 function run(overrides: {
   id: string;
@@ -67,5 +79,115 @@ describe("getLegacyCsvDuplicateIds", () => {
         }),
       ])
     ).toEqual([]);
+  });
+});
+
+function dbRun(overrides: {
+  id: string;
+  stravaId: bigint;
+  startDate: string;
+  distanceKm?: number;
+}) {
+  const createdAt = new Date("2026-04-24T00:00:00.000Z");
+
+  return {
+    id: overrides.id,
+    stravaId: overrides.stravaId,
+    name: "Morning Run",
+    sportType: "Run",
+    startDate: new Date(overrides.startDate),
+    distanceKm: overrides.distanceKm ?? 5,
+    elapsedTimeMin: 30,
+    averageSpeedKmph: 10,
+    paceMinPerKm: 6,
+    pace: "6.00",
+    description: null,
+    splits: [],
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
+describe("listRunsPage", () => {
+  beforeEach(() => {
+    prismaMock.run.aggregate.mockReset();
+    prismaMock.run.count.mockReset();
+    prismaMock.run.findMany.mockReset();
+  });
+
+  it("returns one page of runs with aggregate totals and a cursor for the next page", async () => {
+    prismaMock.run.count.mockResolvedValue(3);
+    prismaMock.run.aggregate.mockResolvedValue({ _sum: { distanceKm: 15 } });
+    prismaMock.run.findMany.mockResolvedValue([
+      dbRun({
+        id: "run-a",
+        stravaId: BigInt("101"),
+        startDate: "2026-04-06T12:23:27.000Z",
+      }),
+      dbRun({
+        id: "run-b",
+        stravaId: BigInt("102"),
+        startDate: "2026-04-01T00:49:03.000Z",
+      }),
+      dbRun({
+        id: "run-c",
+        stravaId: BigInt("103"),
+        startDate: "2026-03-27T12:29:07.000Z",
+      }),
+    ]);
+
+    const page = await listRunsPage({ limit: 2 });
+
+    expect(prismaMock.run.findMany).toHaveBeenCalledWith({
+      orderBy: [{ startDate: "desc" }, { id: "asc" }],
+      take: 3,
+      where: undefined,
+    });
+    expect(page.runs.map((run) => run.id)).toEqual(["101", "102"]);
+    expect(page.totalRuns).toBe(3);
+    expect(page.totalDistanceKm).toBe(15);
+    expect(page.nextCursor).toBeTypeOf("string");
+  });
+
+  it("uses the cursor to request runs after the last item from the previous page", async () => {
+    prismaMock.run.count.mockResolvedValue(1);
+    prismaMock.run.aggregate.mockResolvedValue({ _sum: { distanceKm: 5 } });
+    prismaMock.run.findMany
+      .mockResolvedValueOnce([
+        dbRun({
+          id: "run-a",
+          stravaId: BigInt("101"),
+          startDate: "2026-04-06T12:23:27.000Z",
+        }),
+        dbRun({
+          id: "run-b",
+          stravaId: BigInt("102"),
+          startDate: "2026-04-01T00:49:03.000Z",
+        }),
+      ])
+      .mockResolvedValueOnce([
+        dbRun({
+          id: "run-c",
+          stravaId: BigInt("103"),
+          startDate: "2026-03-27T12:29:07.000Z",
+        }),
+      ]);
+
+    const firstPage = await listRunsPage({ limit: 1 });
+    await listRunsPage({ limit: 1, cursor: firstPage.nextCursor });
+
+    expect(prismaMock.run.findMany).toHaveBeenLastCalledWith({
+      orderBy: [{ startDate: "desc" }, { id: "asc" }],
+      take: 2,
+      where: {
+        OR: [
+          { startDate: { lt: new Date("2026-04-06T12:23:27.000Z") } },
+          {
+            id: { gt: "run-a" },
+            startDate: new Date("2026-04-06T12:23:27.000Z"),
+          },
+        ],
+      },
+    });
   });
 });

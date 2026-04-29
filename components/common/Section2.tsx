@@ -1,29 +1,39 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useTransform, motion } from 'framer-motion';
+import { useReducedMotion, useTransform, motion } from 'framer-motion';
 import InfiniteGrid from './InfiniteGrid';
 
-const Section2 = ({ scrollYProgress }) => {
-	const [isMobile, setIsMobile] = useState(false);
-	
+function useDesktopMotion() {
+	const [isDesktop, setIsDesktop] = useState(false);
+
 	useEffect(() => {
-		const checkMobile = () => {
-			setIsMobile(window.innerWidth < 768);
-		};
-		checkMobile();
-		window.addEventListener('resize', checkMobile);
-		return () => window.removeEventListener('resize', checkMobile);
+		const query = window.matchMedia("(min-width: 768px)");
+		const update = () => setIsDesktop(query.matches);
+
+		update();
+		query.addEventListener("change", update);
+
+		return () => query.removeEventListener("change", update);
 	}, []);
+
+	return isDesktop;
+}
+
+const Section2 = ({ scrollYProgress }) => {
+	const isDesktop = useDesktopMotion();
+	const reduceMotion = useReducedMotion();
 	
 	const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
 	const rotate = useTransform(scrollYProgress, [0, 1], [5, 0]);
 	
-	const sectionStyle = isMobile ? {} : { scale, rotate };
+	const sectionStyle = isDesktop && !reduceMotion
+		? { scale, rotate, willChange: "transform" }
+		: {};
 
 	return (
 		<motion.section
 			style={sectionStyle}
-			className="relative min-h-[85vh] md:min-h-[85vh] bg-pure-black text-pure-white font-montserrat py-20 flex items-center justify-center overflow-x-hidden"
+			className="relative min-h-[85vh] md:min-h-[85vh] bg-pure-black text-pure-white font-montserrat py-20 flex items-center justify-center overflow-x-hidden transform-gpu"
 		>
 			<article className='container mx-auto relative z-10 px-8 flex flex-col items-center text-center'>
 				<h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 text-center">

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import type { RunActivity, RunSplit } from "@/types";
+import type { RunActivity, RunSplit, RunsPage } from "@/types";
 import type { NormalizedStravaActivity } from "@/lib/server/strava";
 
 type RunDuplicateRecord = {
@@ -13,6 +13,16 @@ type RunDuplicateRecord = {
   raw: Prisma.JsonValue | null;
   createdAt: Date;
 };
+
+type RunCursor = {
+  startDate: string;
+  id: string;
+};
+
+type RunPageRecord = Parameters<typeof toRunActivity>[0];
+
+const DEFAULT_RUN_PAGE_LIMIT = 24;
+const MAX_RUN_PAGE_LIMIT = 96;
 
 function asSplitArray(value: Prisma.JsonValue): RunSplit[] {
   return Array.isArray(value) ? (value as RunSplit[]) : [];
@@ -141,6 +151,92 @@ export async function listRuns() {
   });
 
   return runs.map(toRunActivity);
+}
+
+function normalizeRunPageLimit(limit?: number) {
+  if (!Number.isFinite(limit)) return DEFAULT_RUN_PAGE_LIMIT;
+  return Math.min(Math.max(Math.trunc(limit ?? DEFAULT_RUN_PAGE_LIMIT), 1), MAX_RUN_PAGE_LIMIT);
+}
+
+function encodeRunCursor(run: Pick<RunPageRecord, "id" | "startDate">) {
+  const cursor: RunCursor = {
+    id: run.id,
+    startDate: run.startDate.toISOString(),
+  };
+
+  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+}
+
+function decodeRunCursor(cursor: string | null | undefined): RunCursor | null {
+  if (!cursor) return null;
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as Partial<RunCursor>;
+
+    if (typeof parsed.id !== "string" || typeof parsed.startDate !== "string") {
+      return null;
+    }
+
+    const startDate = new Date(parsed.startDate);
+    if (Number.isNaN(startDate.getTime())) return null;
+
+    return {
+      id: parsed.id,
+      startDate: startDate.toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getRunsPageWhere(cursor: string | null | undefined): Prisma.RunWhereInput | undefined {
+  const decodedCursor = decodeRunCursor(cursor);
+
+  if (!decodedCursor) return undefined;
+
+  const startDate = new Date(decodedCursor.startDate);
+
+  return {
+    OR: [
+      { startDate: { lt: startDate } },
+      {
+        id: { gt: decodedCursor.id },
+        startDate,
+      },
+    ],
+  };
+}
+
+export async function listRunsPage({
+  cursor,
+  limit,
+}: {
+  cursor?: string | null;
+  limit?: number;
+} = {}): Promise<RunsPage> {
+  const pageLimit = normalizeRunPageLimit(limit);
+  const where = getRunsPageWhere(cursor);
+
+  const [totalRuns, totalDistance, records] = await Promise.all([
+    prisma.run.count(),
+    prisma.run.aggregate({ _sum: { distanceKm: true } }),
+    prisma.run.findMany({
+      orderBy: [{ startDate: "desc" }, { id: "asc" }],
+      take: pageLimit + 1,
+      where,
+    }),
+  ]);
+
+  const pageRecords = records.slice(0, pageLimit);
+  const hasMore = records.length > pageLimit;
+  const lastPageRecord = pageRecords.at(-1);
+
+  return {
+    runs: pageRecords.map(toRunActivity),
+    nextCursor: hasMore && lastPageRecord ? encodeRunCursor(lastPageRecord) : null,
+    totalRuns,
+    totalDistanceKm: totalDistance._sum.distanceKm ?? 0,
+  };
 }
 
 export async function countRuns() {
