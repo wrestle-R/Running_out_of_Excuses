@@ -6,7 +6,13 @@ const prismaMock = vi.hoisted(() => ({
   run: {
     aggregate: vi.fn(),
     count: vi.fn(),
+    deleteMany: vi.fn(),
     findMany: vi.fn(),
+    upsert: vi.fn(),
+  },
+  timelineData: {
+    findMany: vi.fn(),
+    upsert: vi.fn(),
   },
 }));
 
@@ -113,6 +119,7 @@ describe("listRunsPage", () => {
     prismaMock.run.aggregate.mockReset();
     prismaMock.run.count.mockReset();
     prismaMock.run.findMany.mockReset();
+    prismaMock.timelineData.findMany.mockReset();
   });
 
   it("returns one page of runs with aggregate totals and a cursor for the next page", async () => {
@@ -143,6 +150,8 @@ describe("listRunsPage", () => {
       take: 3,
       where: undefined,
     });
+    expect(prismaMock.run.count).toHaveBeenCalledTimes(1);
+    expect(prismaMock.run.aggregate).toHaveBeenCalledTimes(1);
     expect(page.runs.map((run) => run.id)).toEqual(["101", "102"]);
     expect(page.totalRuns).toBe(3);
     expect(page.totalDistanceKm).toBe(15);
@@ -190,6 +199,24 @@ describe("listRunsPage", () => {
       },
     });
   });
+
+  it("still returns runs page when totals query fails", async () => {
+    prismaMock.run.findMany.mockResolvedValue([
+      dbRun({
+        id: "run-a",
+        stravaId: BigInt("101"),
+        startDate: "2026-04-06T12:23:27.000Z",
+      }),
+    ]);
+    prismaMock.run.count.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const page = await listRunsPage({ limit: 1 });
+
+    expect(page.runs).toHaveLength(1);
+    expect(page.totalRuns).toBe(0);
+    expect(page.totalDistanceKm).toBe(0);
+  });
 });
 
 describe("listTimelineYearSummary", () => {
@@ -197,9 +224,93 @@ describe("listTimelineYearSummary", () => {
     prismaMock.run.aggregate.mockReset();
     prismaMock.run.count.mockReset();
     prismaMock.run.findMany.mockReset();
+    prismaMock.timelineData.findMany.mockReset();
   });
 
-  it("loads only lightweight run fields for one year and groups them by month", async () => {
+  it("loads timeline summaries from TimelineData and fills missing months", async () => {
+    prismaMock.timelineData.findMany.mockResolvedValue([
+      {
+        year: 2026,
+        month: 3,
+        totalRuns: 1,
+        totalDistanceKm: 10,
+        topRuns: [
+          {
+            id: "203",
+            name: "March Run",
+            distance_km: 10,
+            date: "2026-03-27T12:29:07.000Z",
+          },
+        ],
+      },
+      {
+        year: 2026,
+        month: 4,
+        totalRuns: 2,
+        totalDistanceKm: 12,
+        topRuns: [
+          {
+            id: "201",
+            name: "April Long",
+            distance_km: 7,
+            date: "2026-04-06T12:23:27.000Z",
+          },
+          {
+            id: "202",
+            name: "April Short",
+            distance_km: 5,
+            date: "2026-04-01T00:49:03.000Z",
+          },
+        ],
+      },
+    ]);
+
+    const summary = await listTimelineYearSummary(2026);
+
+    expect(prismaMock.timelineData.findMany).toHaveBeenCalledWith({
+      where: { year: 2026 },
+      orderBy: { month: "asc" },
+      select: {
+        year: true,
+        month: true,
+        totalRuns: true,
+        totalDistanceKm: true,
+        topRuns: true,
+      },
+    });
+    expect(summary.year).toBe(2026);
+    expect(summary.months).toHaveLength(12);
+    expect(summary.months[0]).toMatchObject({
+      month: 1,
+      totalRuns: 0,
+      totalDistanceKm: 0,
+      topRuns: [],
+    });
+    expect(summary.months[3]).toMatchObject({
+      year: 2026,
+      month: 4,
+      totalRuns: 2,
+      totalDistanceKm: 12,
+      topRuns: [
+        {
+          id: "201",
+          distance_km: 7,
+        },
+        {
+          id: "202",
+          distance_km: 5,
+        },
+      ],
+    });
+    expect(summary.months[2]).toMatchObject({
+      month: 3,
+      totalRuns: 1,
+      totalDistanceKm: 10,
+    });
+  });
+
+  it("falls back to Run aggregation when TimelineData query fails", async () => {
+    prismaMock.timelineData.findMany.mockRejectedValueOnce(new Error("TimelineData missing"));
     prismaMock.run.findMany.mockResolvedValue([
       dbRun({
         id: "april-long",
@@ -220,42 +331,15 @@ describe("listTimelineYearSummary", () => {
         distanceKm: 10,
       }),
     ]);
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     const summary = await listTimelineYearSummary(2026);
 
-    expect(prismaMock.run.findMany).toHaveBeenCalledWith({
-      orderBy: [{ startDate: "desc" }, { id: "asc" }],
-      select: {
-        id: true,
-        stravaId: true,
-        name: true,
-        startDate: true,
-        distanceKm: true,
-      },
-      where: {
-        startDate: {
-          gte: new Date("2026-01-01T00:00:00.000Z"),
-          lt: new Date("2027-01-01T00:00:00.000Z"),
-        },
-      },
-    });
-    expect(summary.year).toBe(2026);
-    expect(summary.months).toHaveLength(12);
+    expect(prismaMock.run.findMany).toHaveBeenCalledOnce();
     expect(summary.months[3]).toMatchObject({
-      year: 2026,
       month: 4,
       totalRuns: 2,
       totalDistanceKm: 12,
-      topRuns: [
-        {
-          id: "201",
-          distance_km: 7,
-        },
-        {
-          id: "202",
-          distance_km: 5,
-        },
-      ],
     });
     expect(summary.months[2]).toMatchObject({
       month: 3,

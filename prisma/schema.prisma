@@ -27,3 +27,18 @@ model Run {
 
   @@map("Runs")
 }
+
+model TimelineData {
+  id              String   @id @default(cuid())
+  year            Int
+  month           Int
+  totalRuns       Int
+  totalDistanceKm Float
+  topRuns         Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([year, month])
+  @@index([year])
+  @@map("TimelineData")
+}

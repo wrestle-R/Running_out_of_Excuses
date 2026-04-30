@@ -247,7 +247,7 @@ const Refresh = () => {
     try {
       setLoading(true);
       setError(null);
-      setStatus('Syncing Strava in 50-activity batches...');
+      setStatus('Syncing Strava in 25-activity batches...');
       const saveResult = await syncLatestRuns();
       
       setResult(saveResult);

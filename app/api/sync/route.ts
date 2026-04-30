@@ -1,7 +1,13 @@
 import { getServerEnv } from "@/lib/server/env";
 import { jsonResponse, optionsResponse, textResponse } from "@/lib/server/http";
 import { getLatestStravaActivities, iterateStravaActivityPages } from "@/lib/server/strava";
-import { countRuns, removeLegacyCsvDuplicates, upsertRuns } from "@/services/runService";
+import {
+  countRuns,
+  rebuildTimelineDataForActivities,
+  rebuildTimelineDataFromRuns,
+  removeLegacyCsvDuplicates,
+  upsertRuns,
+} from "@/services/runService";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +45,7 @@ export async function POST() {
         updated += pageResult.updated;
       }
       const cleanup = await removeLegacyCsvDuplicates();
+      const timeline = await rebuildTimelineDataFromRuns();
 
       return jsonResponse({
         message: "Initial seed completed",
@@ -54,13 +61,16 @@ export async function POST() {
         inserted,
         updated,
         removedDuplicateCsvRuns: cleanup.removed,
+        timelineMonthsRebuilt: timeline.monthsRebuilt,
+        timelineYearsRebuilt: timeline.yearsRebuilt,
         newCount: inserted,
       });
     }
 
-    const activities = await getLatestStravaActivities(env, 50);
+    const activities = await getLatestStravaActivities(env, 25);
     const result = await upsertRuns(activities);
     const cleanup = await removeLegacyCsvDuplicates();
+    const timeline = await rebuildTimelineDataForActivities(activities);
 
     return jsonResponse({
       message: "Sync completed",
@@ -69,6 +79,7 @@ export async function POST() {
       totalCount: result.total,
       newCount: result.inserted,
       removedDuplicateCsvRuns: cleanup.removed,
+      timelineMonthsRebuilt: timeline.monthsRebuilt,
       ...result,
     });
   } catch (error) {

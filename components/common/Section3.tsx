@@ -158,12 +158,16 @@ const monthsData = [
 const availableYears = Array.from(new Set(monthsData.map((month) => month.year))).sort(
 	(a, b) => b - a
 );
+const AUTO_RETRY_MAX_ATTEMPTS = 3;
+const AUTO_RETRY_DELAY_MS = 1500;
 
 export function TimelineDemo() {
 	const [selectedYear, setSelectedYear] = useState(availableYears[0]);
 	const [timelineByYear, setTimelineByYear] = useState<Record<number, TimelineYearSummary>>({});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [retrySignal, setRetrySignal] = useState(0);
+	const [autoRetryAttempt, setAutoRetryAttempt] = useState(0);
 	const [isMobile, setIsMobile] = useState(false);
 	const router = useRouter();
 
@@ -179,11 +183,13 @@ export function TimelineDemo() {
 
 	useEffect(() => {
 		let cancelled = false;
+		let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
 		async function loadTimelineYear() {
 			if (timelineByYear[selectedYear]) {
 				setLoading(false);
 				setError(null);
+				setAutoRetryAttempt(0);
 				return;
 			}
 
@@ -198,10 +204,19 @@ export function TimelineDemo() {
 					...current,
 					[selectedYear]: summary,
 				}));
+				setAutoRetryAttempt(0);
 			} catch (e) {
 				if (!cancelled) {
 					console.error("Unable to load timeline:", e);
 					setError("Unable to load timeline");
+					setAutoRetryAttempt((current) => {
+						if (current >= AUTO_RETRY_MAX_ATTEMPTS) return current;
+						const nextAttempt = current + 1;
+						retryTimer = setTimeout(() => {
+							setRetrySignal((value) => value + 1);
+						}, AUTO_RETRY_DELAY_MS * nextAttempt);
+						return nextAttempt;
+					});
 				}
 			} finally {
 				if (!cancelled) {
@@ -214,8 +229,11 @@ export function TimelineDemo() {
 
 		return () => {
 			cancelled = true;
+			if (retryTimer) {
+				clearTimeout(retryTimer);
+			}
 		};
-	}, [selectedYear, timelineByYear]);
+	}, [selectedYear, timelineByYear, retrySignal]);
 
 	const selectedSummary = timelineByYear[selectedYear];
 
@@ -378,17 +396,21 @@ export function TimelineDemo() {
 					<div className="w-full max-w-xl rounded-lg border border-white/10 bg-white/[0.04] px-6 py-10 text-center">
 						<p className="text-lg font-bold text-white">Unable to load timeline.</p>
 						<p className="mt-2 text-sm text-white/45">
-							Please retry in a moment.
+							{autoRetryAttempt < AUTO_RETRY_MAX_ATTEMPTS
+								? "Retrying automatically..."
+								: "Please retry in a moment."}
 						</p>
 						<button
 							type="button"
 							className="mt-5 rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/20"
 							onClick={() => {
+								setAutoRetryAttempt(0);
 								setTimelineByYear((current) => {
 									const next = { ...current };
 									delete next[selectedYear];
 									return next;
 								});
+								setRetrySignal((value) => value + 1);
 							}}
 						>
 							Retry

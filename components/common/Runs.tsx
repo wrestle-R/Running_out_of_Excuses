@@ -30,6 +30,8 @@ const RUN_PAGE_LIMIT = 24;
 const MASONRY_ROW_HEIGHT = 8;
 const MASONRY_GAP = 20;
 const DEFAULT_CARD_SPAN = 12;
+const INITIAL_RETRY_DELAY_MS = 1500;
+const MAX_RETRY_DELAY_MS = 30000;
 const runnyBlack = "/runny-black-nobg.png";
 
 function paceToSpeed(
@@ -370,6 +372,11 @@ export default function Runs({
   const [nextCursor, setNextCursor] = useState(initialPage.nextCursor);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recoveringInitialLoad, setRecoveringInitialLoad] = useState(false);
+  const [initialRetryCount, setInitialRetryCount] = useState(0);
+  const bootstrapRunRequestRef = useRef(false);
+  const bootstrapRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadMoreRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadedIds = useMemo(() => new Set(runs.map((run) => run.id)), [runs]);
 
@@ -382,6 +389,10 @@ export default function Runs({
 
     try {
       const page = await fetchRunsPage({ cursor: nextCursor, limit: RUN_PAGE_LIMIT });
+      if (loadMoreRetryTimerRef.current) {
+        clearTimeout(loadMoreRetryTimerRef.current);
+        loadMoreRetryTimerRef.current = null;
+      }
       setRuns((currentRuns) => {
         const currentIds = new Set(currentRuns.map((run) => run.id));
         const newRuns = page.runs.filter((run) => !currentIds.has(run.id));
@@ -391,11 +402,98 @@ export default function Runs({
     } catch (err) {
       console.error("Unable to load more runs:", err);
       setError("Unable to load more runs");
+
+      if (!loadMoreRetryTimerRef.current && typeof window !== "undefined") {
+        loadMoreRetryTimerRef.current = setTimeout(() => {
+          loadMoreRetryTimerRef.current = null;
+
+          if (!document.hidden && navigator.onLine) {
+            void loadMore();
+          }
+        }, 3000);
+      }
     } finally {
       loadingRef.current = false;
       setLoadingMore(false);
     }
   }, [nextCursor]);
+
+  const retryInitialLoad = useCallback(async () => {
+    if (bootstrapRunRequestRef.current) return;
+
+    bootstrapRunRequestRef.current = true;
+    setRecoveringInitialLoad(true);
+
+    try {
+      const page = await fetchRunsPage({ limit: RUN_PAGE_LIMIT });
+      setRuns(page.runs);
+      setNextCursor(page.nextCursor);
+      setInitialRetryCount(0);
+    } catch (err) {
+      console.error("Unable to recover initial runs page:", err);
+      setInitialRetryCount((count) => count + 1);
+    } finally {
+      bootstrapRunRequestRef.current = false;
+      setRecoveringInitialLoad(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!(initialError && runs.length === 0)) return;
+
+    void retryInitialLoad();
+  }, [initialError, runs.length, retryInitialLoad]);
+
+  useEffect(() => {
+    if (!(initialError && runs.length === 0)) return;
+
+    const attempt = initialRetryCount + 1;
+    const delay = Math.min(INITIAL_RETRY_DELAY_MS * 2 ** (attempt - 1), MAX_RETRY_DELAY_MS);
+
+    if (bootstrapRetryTimerRef.current) {
+      clearTimeout(bootstrapRetryTimerRef.current);
+    }
+
+    bootstrapRetryTimerRef.current = setTimeout(() => {
+      if (!document.hidden && navigator.onLine) {
+        void retryInitialLoad();
+      }
+    }, delay);
+
+    return () => {
+      if (bootstrapRetryTimerRef.current) {
+        clearTimeout(bootstrapRetryTimerRef.current);
+        bootstrapRetryTimerRef.current = null;
+      }
+    };
+  }, [initialError, initialRetryCount, retryInitialLoad, runs.length]);
+
+  useEffect(() => {
+    const onOnline = () => {
+      if (initialError && runs.length === 0) {
+        void retryInitialLoad();
+      }
+
+      if (error && nextCursor) {
+        void loadMore();
+      }
+    };
+
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [error, initialError, loadMore, nextCursor, retryInitialLoad, runs.length]);
+
+  useEffect(() => {
+    return () => {
+      if (bootstrapRetryTimerRef.current) {
+        clearTimeout(bootstrapRetryTimerRef.current);
+      }
+
+      if (loadMoreRetryTimerRef.current) {
+        clearTimeout(loadMoreRetryTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -458,13 +556,19 @@ export default function Runs({
                 <p className="mx-auto mt-2 max-w-md text-sm font-medium text-pure-white/40">
                   {initialError}
                 </p>
+                {recoveringInitialLoad && (
+                  <p className="mx-auto mt-2 max-w-md text-xs font-medium text-pure-white/45">
+                    Retrying automatically in the background...
+                  </p>
+                )}
                 <Button
                   type="button"
                   variant="ghost"
                   className="mt-6 rounded-full border border-white/10 bg-white/10 text-pure-white hover:bg-pure-white hover:text-pure-black"
-                  onClick={() => window.location.reload()}
+                  onClick={() => void retryInitialLoad()}
+                  disabled={recoveringInitialLoad}
                 >
-                  Retry
+                  {recoveringInitialLoad ? "Retrying..." : "Retry"}
                 </Button>
               </>
             ) : (

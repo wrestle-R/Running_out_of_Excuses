@@ -7,6 +7,15 @@ type RequestJsonOptions = RequestInit & {
 
 const RETRY_DELAY_MS = 250;
 
+class HttpStatusError extends Error {
+  status: number;
+
+  constructor(status: number) {
+    super(`HTTP_${status}`);
+    this.status = status;
+  }
+}
+
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -14,7 +23,8 @@ function wait(ms: number) {
 function shouldRetry(error: unknown) {
   return (
     error instanceof TypeError ||
-    (error instanceof Error && error.message.startsWith("HTTP_5"))
+    (error instanceof HttpStatusError &&
+      (error.status >= 500 || error.status === 429 || error.status === 408))
   );
 }
 
@@ -22,7 +32,11 @@ async function readJson<T>(response: Response, errorMessage: string): Promise<T>
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(response.status >= 500 ? `HTTP_${response.status}` : errorMessage);
+    if (response.status >= 500 || response.status === 429 || response.status === 408) {
+      throw new HttpStatusError(response.status);
+    }
+
+    throw new Error(errorMessage);
   }
 
   return data as T;

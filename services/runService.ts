@@ -1,6 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import type { RunActivity, RunSplit, RunsPage, TimelineYearSummary } from "@/types";
+import type {
+  RunActivity,
+  RunSplit,
+  RunsPage,
+  TimelineTopRun,
+  TimelineYearSummary,
+} from "@/types";
 import type { NormalizedStravaActivity } from "@/lib/server/strava";
 
 type RunDuplicateRecord = {
@@ -24,6 +30,15 @@ type RunPageRecord = Parameters<typeof toRunActivity>[0];
 const DEFAULT_RUN_PAGE_LIMIT = 24;
 const MAX_RUN_PAGE_LIMIT = 96;
 const MONTHS_IN_YEAR = 12;
+const TIMELINE_TOP_RUN_LIMIT = 3;
+
+type TimelineDataRow = {
+  year: number;
+  month: number;
+  totalRuns: number;
+  totalDistanceKm: number;
+  topRuns: Prisma.JsonValue;
+};
 
 function asSplitArray(value: Prisma.JsonValue): RunSplit[] {
   return Array.isArray(value) ? (value as RunSplit[]) : [];
@@ -208,54 +223,62 @@ function getRunsPageWhere(cursor: string | null | undefined): Prisma.RunWhereInp
   };
 }
 
-export async function listRunsPage({
-  cursor,
-  limit,
-}: {
-  cursor?: string | null;
-  limit?: number;
-} = {}): Promise<RunsPage> {
-  const pageLimit = normalizeRunPageLimit(limit);
-  const where = getRunsPageWhere(cursor);
-
-  const [totalRuns, totalDistance, records] = await Promise.all([
-    prisma.run.count(),
-    prisma.run.aggregate({ _sum: { distanceKm: true } }),
-    prisma.run.findMany({
-      orderBy: [{ startDate: "desc" }, { id: "asc" }],
-      take: pageLimit + 1,
-      where,
-    }),
-  ]);
-
-  const pageRecords = records.slice(0, pageLimit);
-  const hasMore = records.length > pageLimit;
-  const lastPageRecord = pageRecords.at(-1);
-
+function emptyTimelineMonth(year: number, month: number) {
   return {
-    runs: pageRecords.map(toRunActivity),
-    nextCursor: hasMore && lastPageRecord ? encodeRunCursor(lastPageRecord) : null,
-    totalRuns,
-    totalDistanceKm: totalDistance._sum.distanceKm ?? 0,
+    year,
+    month,
+    totalRuns: 0,
+    totalDistanceKm: 0,
+    topRuns: [] as TimelineTopRun[],
   };
 }
 
-export async function listTimelineYearSummary(year: number): Promise<TimelineYearSummary> {
-  const normalizedYear = Number.isFinite(year) ? Math.trunc(year) : new Date().getFullYear();
+function parseTopRuns(value: Prisma.JsonValue): TimelineTopRun[] {
+  if (!Array.isArray(value)) return [];
+
+  const topRuns: TimelineTopRun[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (
+      typeof record.id === "string" &&
+      typeof record.name === "string" &&
+      typeof record.distance_km === "number" &&
+      Number.isFinite(record.distance_km) &&
+      typeof record.date === "string"
+    ) {
+      topRuns.push({
+        id: record.id,
+        name: record.name,
+        distance_km: record.distance_km,
+        date: record.date,
+      });
+    }
+  }
+
+  return topRuns.slice(0, TIMELINE_TOP_RUN_LIMIT);
+}
+
+function timelineMonthFromRow(row: TimelineDataRow) {
+  return {
+    year: row.year,
+    month: row.month,
+    totalRuns: row.totalRuns,
+    totalDistanceKm: Number(row.totalDistanceKm.toFixed(2)),
+    topRuns: parseTopRuns(row.topRuns),
+  };
+}
+
+async function buildTimelineYearSummaryFromRuns(normalizedYear: number): Promise<TimelineYearSummary> {
   const startDate = new Date(Date.UTC(normalizedYear, 0, 1));
   const endDate = new Date(Date.UTC(normalizedYear + 1, 0, 1));
-  const months = Array.from({ length: MONTHS_IN_YEAR }, (_, index) => ({
-    year: normalizedYear,
-    month: index + 1,
-    totalRuns: 0,
-    totalDistanceKm: 0,
-    topRuns: [],
-  }));
+  const months = Array.from({ length: MONTHS_IN_YEAR }, (_, index) =>
+    emptyTimelineMonth(normalizedYear, index + 1)
+  );
 
   const runs = await prisma.run.findMany({
     orderBy: [{ startDate: "desc" }, { id: "asc" }],
     select: {
-      id: true,
       stravaId: true,
       name: true,
       startDate: true,
@@ -270,9 +293,7 @@ export async function listTimelineYearSummary(year: number): Promise<TimelineYea
   });
 
   for (const run of runs) {
-    const monthIndex = run.startDate.getUTCMonth();
-    const month = months[monthIndex];
-
+    const month = months[run.startDate.getUTCMonth()];
     month.totalRuns += 1;
     month.totalDistanceKm += run.distanceKm;
     month.topRuns.push({
@@ -287,13 +308,193 @@ export async function listTimelineYearSummary(year: number): Promise<TimelineYea
     month.totalDistanceKm = Number(month.totalDistanceKm.toFixed(2));
     month.topRuns = month.topRuns
       .sort((a, b) => b.distance_km - a.distance_km)
-      .slice(0, 3);
+      .slice(0, TIMELINE_TOP_RUN_LIMIT);
   }
 
   return {
     year: normalizedYear,
     months,
   };
+}
+
+async function computeTimelineSummaryByYearMonth(year: number, month: number) {
+  const startDate = new Date(Date.UTC(year, month - 1, 1));
+  const endDate = new Date(Date.UTC(year, month, 1));
+
+  const runs = await prisma.run.findMany({
+    orderBy: [{ distanceKm: "desc" }, { startDate: "desc" }, { id: "asc" }],
+    select: {
+      stravaId: true,
+      name: true,
+      startDate: true,
+      distanceKm: true,
+    },
+    where: {
+      startDate: {
+        gte: startDate,
+        lt: endDate,
+      },
+    },
+  });
+
+  const topRuns = runs.slice(0, TIMELINE_TOP_RUN_LIMIT).map((run) => ({
+    id: run.stravaId.toString(),
+    name: run.name,
+    distance_km: run.distanceKm,
+    date: run.startDate.toISOString(),
+  }));
+  const totalDistanceKm = Number(
+    runs.reduce((sum, run) => sum + run.distanceKm, 0).toFixed(2)
+  );
+
+  return {
+    year,
+    month,
+    totalRuns: runs.length,
+    totalDistanceKm,
+    topRuns,
+  };
+}
+
+async function upsertTimelineSummaryByYearMonth(year: number, month: number) {
+  const summary = await computeTimelineSummaryByYearMonth(year, month);
+
+  await prisma.timelineData.upsert({
+    where: { year_month: { year, month } },
+    create: {
+      year: summary.year,
+      month: summary.month,
+      totalRuns: summary.totalRuns,
+      totalDistanceKm: summary.totalDistanceKm,
+      topRuns: summary.topRuns as Prisma.InputJsonValue,
+    },
+    update: {
+      totalRuns: summary.totalRuns,
+      totalDistanceKm: summary.totalDistanceKm,
+      topRuns: summary.topRuns as Prisma.InputJsonValue,
+    },
+  });
+}
+
+export async function listRunsPage({
+  cursor,
+  limit,
+}: {
+  cursor?: string | null;
+  limit?: number;
+} = {}): Promise<RunsPage> {
+  const pageLimit = normalizeRunPageLimit(limit);
+  const where = getRunsPageWhere(cursor);
+
+  const records = await prisma.run.findMany({
+    orderBy: [{ startDate: "desc" }, { id: "asc" }],
+    take: pageLimit + 1,
+    where,
+  });
+
+  const pageRecords = records.slice(0, pageLimit);
+  const hasMore = records.length > pageLimit;
+  const lastPageRecord = pageRecords.at(-1);
+  let totalRuns = 0;
+  let totalDistanceKm = 0;
+
+  try {
+    totalRuns = await prisma.run.count();
+    const totalDistance = await prisma.run.aggregate({ _sum: { distanceKm: true } });
+    totalDistanceKm = totalDistance._sum.distanceKm ?? 0;
+  } catch (error) {
+    console.error("Unable to load run totals:", error);
+  }
+
+  return {
+    runs: pageRecords.map(toRunActivity),
+    nextCursor: hasMore && lastPageRecord ? encodeRunCursor(lastPageRecord) : null,
+    totalRuns,
+    totalDistanceKm,
+  };
+}
+
+export async function listTimelineYearSummary(year: number): Promise<TimelineYearSummary> {
+  const normalizedYear = Number.isFinite(year) ? Math.trunc(year) : new Date().getFullYear();
+  try {
+    const rows = await prisma.timelineData.findMany({
+      where: { year: normalizedYear },
+      orderBy: { month: "asc" },
+      select: {
+        year: true,
+        month: true,
+        totalRuns: true,
+        totalDistanceKm: true,
+        topRuns: true,
+      },
+    });
+    const monthByNumber = new Map(rows.map((row) => [row.month, timelineMonthFromRow(row)]));
+    const months = Array.from({ length: MONTHS_IN_YEAR }, (_, index) => {
+      const month = index + 1;
+      return monthByNumber.get(month) ?? emptyTimelineMonth(normalizedYear, month);
+    });
+
+    return {
+      year: normalizedYear,
+      months,
+    };
+  } catch (error) {
+    console.error("Unable to load TimelineData rows, falling back to Run aggregation:", error);
+    return buildTimelineYearSummaryFromRuns(normalizedYear);
+  }
+}
+
+export async function rebuildTimelineDataForYears(years: number[]) {
+  const uniqueYears = Array.from(new Set(years.map((year) => Math.trunc(year)).filter(Number.isFinite)));
+  const touched = new Set<string>();
+
+  for (const year of uniqueYears) {
+    for (let month = 1; month <= MONTHS_IN_YEAR; month += 1) {
+      await upsertTimelineSummaryByYearMonth(year, month);
+      touched.add(`${year}-${month}`);
+    }
+  }
+
+  return { monthsRebuilt: touched.size };
+}
+
+export async function rebuildTimelineDataFromRuns() {
+  const runYears = await prisma.run.findMany({
+    select: { startDate: true },
+  });
+  const years = Array.from(new Set(runYears.map((run) => run.startDate.getUTCFullYear())));
+
+  if (years.length === 0) {
+    return { monthsRebuilt: 0, yearsRebuilt: 0 };
+  }
+
+  const result = await rebuildTimelineDataForYears(years);
+  return {
+    ...result,
+    yearsRebuilt: years.length,
+  };
+}
+
+export async function rebuildTimelineDataForActivities(activities: NormalizedStravaActivity[]) {
+  if (activities.length === 0) {
+    return { monthsRebuilt: 0 };
+  }
+
+  const touchedMonths = new Set<string>();
+  for (const activity of activities) {
+    const date = new Date(activity.date);
+    if (Number.isNaN(date.getTime())) continue;
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1;
+    touchedMonths.add(`${year}-${month}`);
+  }
+
+  for (const value of touchedMonths) {
+    const [year, month] = value.split("-").map((part) => Number.parseInt(part, 10));
+    await upsertTimelineSummaryByYearMonth(year, month);
+  }
+
+  return { monthsRebuilt: touchedMonths.size };
 }
 
 export async function countRuns() {
