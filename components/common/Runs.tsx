@@ -370,8 +370,14 @@ export default function Runs({
   const loadingRef = useRef(false);
   const [runs, setRuns] = useState(initialPage.runs);
   const [nextCursor, setNextCursor] = useState(initialPage.nextCursor);
+  const [totalRuns, setTotalRuns] = useState(initialPage.totalRuns);
+  const [totalDistanceKm, setTotalDistanceKm] = useState(initialPage.totalDistanceKm);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadError, setInitialLoadError] = useState<string | null>(initialError);
+  const [isBootstrapping, setIsBootstrapping] = useState(
+    initialPage.runs.length === 0 && !initialError
+  );
   const [recoveringInitialLoad, setRecoveringInitialLoad] = useState(false);
   const [initialRetryCount, setInitialRetryCount] = useState(0);
   const bootstrapRunRequestRef = useRef(false);
@@ -423,15 +429,22 @@ export default function Runs({
 
     bootstrapRunRequestRef.current = true;
     setRecoveringInitialLoad(true);
+    setError(null);
+    setInitialLoadError(null);
 
     try {
       const page = await fetchRunsPage({ limit: RUN_PAGE_LIMIT });
       setRuns(page.runs);
       setNextCursor(page.nextCursor);
+      setTotalRuns(page.totalRuns);
+      setTotalDistanceKm(page.totalDistanceKm);
       setInitialRetryCount(0);
+      setIsBootstrapping(false);
     } catch (err) {
       console.error("Unable to recover initial runs page:", err);
+      setInitialLoadError("Unable to reach the runs database. Please retry in a moment.");
       setInitialRetryCount((count) => count + 1);
+      setIsBootstrapping(false);
     } finally {
       bootstrapRunRequestRef.current = false;
       setRecoveringInitialLoad(false);
@@ -439,13 +452,19 @@ export default function Runs({
   }, []);
 
   useEffect(() => {
-    if (!(initialError && runs.length === 0)) return;
+    if (!isBootstrapping || runs.length > 0) return;
 
     void retryInitialLoad();
-  }, [initialError, runs.length, retryInitialLoad]);
+  }, [isBootstrapping, runs.length, retryInitialLoad]);
 
   useEffect(() => {
-    if (!(initialError && runs.length === 0)) return;
+    if (!(initialLoadError && runs.length === 0)) return;
+
+    void retryInitialLoad();
+  }, [initialLoadError, runs.length, retryInitialLoad]);
+
+  useEffect(() => {
+    if (!(initialLoadError && runs.length === 0)) return;
 
     const attempt = initialRetryCount + 1;
     const delay = Math.min(INITIAL_RETRY_DELAY_MS * 2 ** (attempt - 1), MAX_RETRY_DELAY_MS);
@@ -466,11 +485,11 @@ export default function Runs({
         bootstrapRetryTimerRef.current = null;
       }
     };
-  }, [initialError, initialRetryCount, retryInitialLoad, runs.length]);
+  }, [initialLoadError, initialRetryCount, retryInitialLoad, runs.length]);
 
   useEffect(() => {
     const onOnline = () => {
-      if (initialError && runs.length === 0) {
+      if (initialLoadError && runs.length === 0) {
         void retryInitialLoad();
       }
 
@@ -481,7 +500,7 @@ export default function Runs({
 
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
-  }, [error, initialError, loadMore, nextCursor, retryInitialLoad, runs.length]);
+  }, [error, initialLoadError, loadMore, nextCursor, retryInitialLoad, runs.length]);
 
   useEffect(() => {
     return () => {
@@ -536,13 +555,25 @@ export default function Runs({
           <div className="grid grid-cols-2 gap-3 md:min-w-80">
             <div className="rounded-lg border border-white/10 bg-white/[0.06] p-4">
               <div className="text-xs font-bold uppercase text-pure-white/45">Total Runs</div>
-              <div className="mt-2 text-3xl font-black">{initialPage.totalRuns}</div>
+              <div className="mt-2 text-3xl font-black">
+                {isBootstrapping && runs.length === 0 ? (
+                  <Skeleton className="h-9 w-20 bg-white/10" />
+                ) : (
+                  totalRuns
+                )}
+              </div>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/[0.06] p-4">
               <div className="text-xs font-bold uppercase text-pure-white/45">Distance</div>
               <div className="mt-2 text-3xl font-black">
-                {initialPage.totalDistanceKm.toFixed(1)}
-                <span className="ml-1 text-base text-pure-white/50">km</span>
+                {isBootstrapping && runs.length === 0 ? (
+                  <Skeleton className="h-9 w-24 bg-white/10" />
+                ) : (
+                  <>
+                    {totalDistanceKm.toFixed(1)}
+                    <span className="ml-1 text-base text-pure-white/50">km</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -550,11 +581,25 @@ export default function Runs({
 
         {runs.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-white/[0.04] px-6 py-20 text-center">
-            {initialError ? (
+            {isBootstrapping ? (
+              <>
+                <p className="text-xl font-bold text-pure-white/70">Loading runs...</p>
+                <p className="mx-auto mt-2 max-w-md text-sm font-medium text-pure-white/40">
+                  Preparing your latest activity feed.
+                </p>
+                <div className="mt-8 grid grid-cols-1 gap-5 [grid-auto-flow:dense] [grid-auto-rows:8px] sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <MasonryItem key={index}>
+                      <RunCardSkeleton />
+                    </MasonryItem>
+                  ))}
+                </div>
+              </>
+            ) : initialLoadError ? (
               <>
                 <p className="text-xl font-bold text-pure-white/70">Unable to load runs.</p>
                 <p className="mx-auto mt-2 max-w-md text-sm font-medium text-pure-white/40">
-                  {initialError}
+                  {initialLoadError}
                 </p>
                 {recoveringInitialLoad && (
                   <p className="mx-auto mt-2 max-w-md text-xs font-medium text-pure-white/45">

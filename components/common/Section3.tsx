@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Timeline } from "./timeline-ui";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { fetchTimelineYear } from "@/lib/api";
+import { fetchRunsPage, fetchTimelineYear } from "@/lib/api";
 import type { TimelineYearSummary } from "@/types";
 
 // Month data array for May, June, July
@@ -160,6 +161,9 @@ const availableYears = Array.from(new Set(monthsData.map((month) => month.year))
 );
 const AUTO_RETRY_MAX_ATTEMPTS = 3;
 const AUTO_RETRY_DELAY_MS = 1500;
+const INITIAL_TIMELINE_YEAR = 2026;
+const PRELOAD_TIMELINE_YEAR = 2025;
+const RUNS_WARMUP_LIMIT = 24;
 
 export function TimelineDemo() {
 	const [selectedYear, setSelectedYear] = useState(availableYears[0]);
@@ -169,6 +173,8 @@ export function TimelineDemo() {
 	const [retrySignal, setRetrySignal] = useState(0);
 	const [autoRetryAttempt, setAutoRetryAttempt] = useState(0);
 	const [isMobile, setIsMobile] = useState(false);
+	const hasStartedRunsWarmupRef = useRef(false);
+	const hasStartedTimelineWarmupRef = useRef(false);
 	const router = useRouter();
 
 	// Handle window resize to detect mobile
@@ -234,6 +240,68 @@ export function TimelineDemo() {
 			}
 		};
 	}, [selectedYear, timelineByYear, retrySignal]);
+
+	useEffect(() => {
+		if (hasStartedRunsWarmupRef.current) return;
+		hasStartedRunsWarmupRef.current = true;
+		let cancelled = false;
+
+		async function warmRunsData() {
+			const prefetchRunsRoutePromise = Promise.resolve(router.prefetch("/runs"));
+			const warmRunsDataPromise = fetchRunsPage({ limit: RUNS_WARMUP_LIMIT });
+			const warmupResults = await Promise.allSettled([
+				prefetchRunsRoutePromise,
+				warmRunsDataPromise,
+			]);
+			const warmupLabels = ["runs-route-prefetch", "runs-page-cache"];
+
+			warmupResults.forEach((result, index) => {
+				if (cancelled) return;
+				if (result.status === "rejected") {
+					console.error(`Background warmup failed for ${warmupLabels[index]}:`, result.reason);
+				}
+			});
+		}
+
+		void warmRunsData();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [router]);
+
+	useEffect(() => {
+		if (hasStartedTimelineWarmupRef.current) return;
+		if (!timelineByYear[INITIAL_TIMELINE_YEAR]) return;
+
+		hasStartedTimelineWarmupRef.current = true;
+		let cancelled = false;
+
+		async function warmTimelineData() {
+			const warmTimelineResult = await Promise.allSettled([
+				fetchTimelineYear(PRELOAD_TIMELINE_YEAR),
+			]);
+
+			if (cancelled) return;
+
+			const [timelineResult] = warmTimelineResult;
+			if (timelineResult.status === "fulfilled") {
+				setTimelineByYear((current) => ({
+					...current,
+					[PRELOAD_TIMELINE_YEAR]: timelineResult.value,
+				}));
+				return;
+			}
+
+			console.error("Background warmup failed for timeline-2025:", timelineResult.reason);
+		}
+
+		void warmTimelineData();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [timelineByYear]);
 
 	const selectedSummary = timelineByYear[selectedYear];
 
@@ -419,12 +487,12 @@ export function TimelineDemo() {
 				)}
 
 				{!loading && !error && <Timeline data={timelineData} />}
-				<button
+				<Link
+					href="/runs"
 					className="mt-6 md:mt-8 px-6 py-2.5 md:px-5 md:py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur active:scale-95"
-					onClick={() => router.push("/runs")}
 				>
 					View All Runs →
-				</button>
+				</Link>
 			</div>
 		</div>
 	);
