@@ -4,3 +4,4 @@ out
 .env*.local
 .env.prod
 npm-debug.log*
+.env

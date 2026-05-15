@@ -13,6 +13,11 @@ import {
   OPTIONS as newsletterSubscribeOptions,
   POST as newsletterSubscribePost,
 } from "@/app/api/newsletter/subscribe/route";
+import { GET as blogViewsGet, OPTIONS as blogViewsOptions } from "@/app/api/blog/views/route";
+import {
+  OPTIONS as blogViewsTrackOptions,
+  POST as blogViewsTrackPost,
+} from "@/app/api/blog/views/track/route";
 
 const getServerEnvMock = vi.hoisted(() => vi.fn());
 const getLatestStravaActivitiesMock = vi.hoisted(() => vi.fn());
@@ -26,6 +31,8 @@ const removeLegacyCsvDuplicatesMock = vi.hoisted(() => vi.fn());
 const rebuildTimelineDataFromRunsMock = vi.hoisted(() => vi.fn());
 const rebuildTimelineDataForActivitiesMock = vi.hoisted(() => vi.fn());
 const subscribeToNewsletterMock = vi.hoisted(() => vi.fn());
+const listBlogViewsMock = vi.hoisted(() => vi.fn());
+const incrementBlogViewMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/server/env", () => ({
   getServerEnv: getServerEnvMock,
@@ -52,6 +59,11 @@ vi.mock("@/services/newsletterService", () => ({
   subscribeToNewsletter: subscribeToNewsletterMock,
 }));
 
+vi.mock("@/services/blogViewsService", () => ({
+  listBlogViews: listBlogViewsMock,
+  incrementBlogView: incrementBlogViewMock,
+}));
+
 function expectCorsHeaders(response: Response) {
   expect(response.headers.get("access-control-allow-origin")).toBe("*");
   expect(response.headers.get("access-control-allow-methods")).toBe(
@@ -72,6 +84,18 @@ describe("API endpoint regression suite", () => {
       STRAVA_CLIENT_ID: "id",
       STRAVA_CLIENT_SECRET: "secret",
       STRAVA_REFRESH_TOKEN: "token",
+    });
+
+    listBlogViewsMock.mockResolvedValue([
+      {
+        slug: "sitcoms",
+        title: "Sitcoms",
+        views: 12,
+      },
+    ]);
+    incrementBlogViewMock.mockResolvedValue({
+      slug: "sitcoms",
+      views: 13,
     });
 
     process.env.STRAVA_EXPECTED_ACTIVITY_COUNT = "101";
@@ -401,6 +425,146 @@ describe("API endpoint regression suite", () => {
 
   it("OPTIONS /api/newsletter/subscribe returns CORS preflight", () => {
     const response = newsletterSubscribeOptions();
+
+    expect(response.status).toBe(204);
+    expectCorsHeaders(response);
+  });
+
+  it("GET /api/blog/views returns view counters", async () => {
+    const response = await blogViewsGet(
+      new Request("http://localhost/api/blog/views?slugs=sitcoms,linux-experience")
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      views: [
+        {
+          slug: "sitcoms",
+          title: "Sitcoms",
+          views: 12,
+        },
+      ],
+    });
+    expect(listBlogViewsMock).toHaveBeenCalledWith(["sitcoms", "linux-experience"]);
+    expectCorsHeaders(response);
+  });
+
+  it("GET /api/blog/views returns sanitized server error", async () => {
+    listBlogViewsMock.mockRejectedValueOnce(new Error("db details"));
+
+    const response = await blogViewsGet(new Request("http://localhost/api/blog/views"));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+    expectCorsHeaders(response);
+  });
+
+  it("OPTIONS /api/blog/views returns CORS preflight", () => {
+    const response = blogViewsOptions();
+
+    expect(response.status).toBe(204);
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/blog/views/track increments views", async () => {
+    const response = await blogViewsTrackPost(
+      new Request("http://localhost/api/blog/views/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: "sitcoms",
+          title: "Sitcoms",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      slug: "sitcoms",
+      views: 13,
+    });
+    expect(incrementBlogViewMock).toHaveBeenCalledWith({
+      slug: "sitcoms",
+      title: "Sitcoms",
+    });
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/blog/views/track validates slug", async () => {
+    const response = await blogViewsTrackPost(
+      new Request("http://localhost/api/blog/views/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Sitcoms",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({
+      success: false,
+      message: "Slug is required",
+    });
+    expect(incrementBlogViewMock).not.toHaveBeenCalled();
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/blog/views/track validates title", async () => {
+    const response = await blogViewsTrackPost(
+      new Request("http://localhost/api/blog/views/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: "sitcoms",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({
+      success: false,
+      message: "Title is required",
+    });
+    expect(incrementBlogViewMock).not.toHaveBeenCalled();
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/blog/views/track returns sanitized server error", async () => {
+    incrementBlogViewMock.mockRejectedValueOnce(new Error("db details"));
+
+    const response = await blogViewsTrackPost(
+      new Request("http://localhost/api/blog/views/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: "sitcoms",
+          title: "Sitcoms",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+    expectCorsHeaders(response);
+  });
+
+  it("OPTIONS /api/blog/views/track returns CORS preflight", () => {
+    const response = blogViewsTrackOptions();
 
     expect(response.status).toBe(204);
     expectCorsHeaders(response);
