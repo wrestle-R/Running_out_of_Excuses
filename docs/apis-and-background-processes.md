@@ -71,7 +71,7 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
   - `env` flags (`hasClientId`, `hasClientSecret`, `hasRefreshToken`)
 - CORS: `OPTIONS /api/test` returns `204` with standard CORS headers.
 
-### `GET /api/blog/views`
+### `GET /api/blogs/views`
 - Purpose: Return blog view counters for Blogeshwar blog cards.
 - Query params:
   - `slugs` (optional comma-separated blog slugs)
@@ -79,9 +79,9 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
   - `success: true`
   - `views: Array<{ slug: string; title: string; views: number }>`
 - Error response: `500` with `{ success: false, message: "Server error. Please try again later." }`.
-- CORS: `OPTIONS /api/blog/views` returns `204` with standard CORS headers.
+- CORS: `OPTIONS /api/blogs/views` returns `204` with standard CORS headers.
 
-### `POST /api/blog/views/track`
+### `POST /api/blogs/views/track`
 - Purpose: Increment one blog post view counter.
 - Request body:
   - `slug: string` (required)
@@ -93,7 +93,22 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
 - Validation response:
   - `400` with `{ success: false, message: "Slug is required" }` or `{ success: false, message: "Title is required" }`
 - Error response: `500` with `{ success: false, message: "Server error. Please try again later." }`.
-- CORS: `OPTIONS /api/blog/views/track` returns `204` with standard CORS headers.
+- CORS: `OPTIONS /api/blogs/views/track` returns `204` with standard CORS headers.
+
+### `POST /api/blogs/newsletter/subscribe`
+- Purpose: Newsletter subscription endpoint used by Blogeshwar.
+- Request body:
+  - `email: string` (required)
+  - `subscribedAt?: string`
+  - `source?: string`
+- Success response:
+  - `success: true`
+  - `message: "Successfully subscribed"`
+  - `email: string`
+- Validation response:
+  - `400` with `{ success: false, message: "Email is required" }` or `{ success: false, message: "Invalid email address" }`
+- Error response: `500` with `{ success: false, message: "Server error. Please try again later." }`.
+- CORS: `OPTIONS /api/blogs/newsletter/subscribe` returns `204` with standard CORS headers.
 
 ## Shared HTTP/CORS Behavior
 All `jsonResponse`, `textResponse`, and `optionsResponse` include:

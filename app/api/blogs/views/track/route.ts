@@ -1,5 +1,5 @@
 import { jsonResponse, optionsResponse } from "@/lib/server/http";
-import { incrementBlogView } from "@/services/blogViewsService";
+import { incrementBlogView } from "@/services/blogs/views/viewsService";
 
 export const dynamic = "force-dynamic";
 

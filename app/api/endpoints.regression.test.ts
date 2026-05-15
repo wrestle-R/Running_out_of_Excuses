@@ -12,12 +12,12 @@ import { GET as testGet, OPTIONS as testOptions } from "@/app/api/test/route";
 import {
   OPTIONS as newsletterSubscribeOptions,
   POST as newsletterSubscribePost,
-} from "@/app/api/newsletter/subscribe/route";
-import { GET as blogViewsGet, OPTIONS as blogViewsOptions } from "@/app/api/blog/views/route";
+} from "@/app/api/blogs/newsletter/subscribe/route";
+import { GET as blogViewsGet, OPTIONS as blogViewsOptions } from "@/app/api/blogs/views/route";
 import {
   OPTIONS as blogViewsTrackOptions,
   POST as blogViewsTrackPost,
-} from "@/app/api/blog/views/track/route";
+} from "@/app/api/blogs/views/track/route";
 
 const getServerEnvMock = vi.hoisted(() => vi.fn());
 const getLatestStravaActivitiesMock = vi.hoisted(() => vi.fn());
@@ -54,12 +54,12 @@ vi.mock("@/services/runService", () => ({
   rebuildTimelineDataForActivities: rebuildTimelineDataForActivitiesMock,
 }));
 
-vi.mock("@/services/newsletterService", () => ({
+vi.mock("@/services/blogs/newsletter/newsletterService", () => ({
   isValidNewsletterEmail: (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
   subscribeToNewsletter: subscribeToNewsletterMock,
 }));
 
-vi.mock("@/services/blogViewsService", () => ({
+vi.mock("@/services/blogs/views/viewsService", () => ({
   listBlogViews: listBlogViewsMock,
   incrementBlogView: incrementBlogViewMock,
 }));
@@ -354,11 +354,11 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/newsletter/subscribe returns success response", async () => {
+  it("POST /api/blogs/newsletter/subscribe returns success response", async () => {
     subscribeToNewsletterMock.mockResolvedValueOnce({ email: "test@example.com" });
 
     const response = await newsletterSubscribePost(
-      new Request("http://localhost/api/newsletter/subscribe", {
+      new Request("http://localhost/api/blogs/newsletter/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -384,9 +384,9 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/newsletter/subscribe validates email", async () => {
+  it("POST /api/blogs/newsletter/subscribe validates email", async () => {
     const response = await newsletterSubscribePost(
-      new Request("http://localhost/api/newsletter/subscribe", {
+      new Request("http://localhost/api/blogs/newsletter/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "invalid-email" }),
@@ -403,11 +403,11 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/newsletter/subscribe returns sanitized server error", async () => {
+  it("POST /api/blogs/newsletter/subscribe returns sanitized server error", async () => {
     subscribeToNewsletterMock.mockRejectedValueOnce(new Error("database details"));
 
     const response = await newsletterSubscribePost(
-      new Request("http://localhost/api/newsletter/subscribe", {
+      new Request("http://localhost/api/blogs/newsletter/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "test@example.com" }),
@@ -423,16 +423,16 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("OPTIONS /api/newsletter/subscribe returns CORS preflight", () => {
+  it("OPTIONS /api/blogs/newsletter/subscribe returns CORS preflight", () => {
     const response = newsletterSubscribeOptions();
 
     expect(response.status).toBe(204);
     expectCorsHeaders(response);
   });
 
-  it("GET /api/blog/views returns view counters", async () => {
+  it("GET /api/blogs/views returns view counters", async () => {
     const response = await blogViewsGet(
-      new Request("http://localhost/api/blog/views?slugs=sitcoms,linux-experience")
+      new Request("http://localhost/api/blogs/views?slugs=sitcoms,linux-experience")
     );
     const body = await response.json();
 
@@ -451,10 +451,10 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("GET /api/blog/views returns sanitized server error", async () => {
+  it("GET /api/blogs/views returns sanitized server error", async () => {
     listBlogViewsMock.mockRejectedValueOnce(new Error("db details"));
 
-    const response = await blogViewsGet(new Request("http://localhost/api/blog/views"));
+    const response = await blogViewsGet(new Request("http://localhost/api/blogs/views"));
     const body = await response.json();
 
     expect(response.status).toBe(500);
@@ -465,16 +465,16 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("OPTIONS /api/blog/views returns CORS preflight", () => {
+  it("OPTIONS /api/blogs/views returns CORS preflight", () => {
     const response = blogViewsOptions();
 
     expect(response.status).toBe(204);
     expectCorsHeaders(response);
   });
 
-  it("POST /api/blog/views/track increments views", async () => {
+  it("POST /api/blogs/views/track increments views", async () => {
     const response = await blogViewsTrackPost(
-      new Request("http://localhost/api/blog/views/track", {
+      new Request("http://localhost/api/blogs/views/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -498,9 +498,9 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/blog/views/track validates slug", async () => {
+  it("POST /api/blogs/views/track validates slug", async () => {
     const response = await blogViewsTrackPost(
-      new Request("http://localhost/api/blog/views/track", {
+      new Request("http://localhost/api/blogs/views/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -519,9 +519,9 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/blog/views/track validates title", async () => {
+  it("POST /api/blogs/views/track validates title", async () => {
     const response = await blogViewsTrackPost(
-      new Request("http://localhost/api/blog/views/track", {
+      new Request("http://localhost/api/blogs/views/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -540,11 +540,11 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("POST /api/blog/views/track returns sanitized server error", async () => {
+  it("POST /api/blogs/views/track returns sanitized server error", async () => {
     incrementBlogViewMock.mockRejectedValueOnce(new Error("db details"));
 
     const response = await blogViewsTrackPost(
-      new Request("http://localhost/api/blog/views/track", {
+      new Request("http://localhost/api/blogs/views/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -563,7 +563,7 @@ describe("API endpoint regression suite", () => {
     expectCorsHeaders(response);
   });
 
-  it("OPTIONS /api/blog/views/track returns CORS preflight", () => {
+  it("OPTIONS /api/blogs/views/track returns CORS preflight", () => {
     const response = blogViewsTrackOptions();
 
     expect(response.status).toBe(204);

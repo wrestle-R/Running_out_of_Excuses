@@ -44,8 +44,6 @@ export async function ensureSeedBlogViews() {
 }
 
 export async function listBlogViews(slugs?: string[]) {
-  await ensureSeedBlogViews();
-
   const normalizedSlugs = (slugs ?? [])
     .map((slug) => normalizeSlug(slug))
     .filter((slug) => slug.length > 0);

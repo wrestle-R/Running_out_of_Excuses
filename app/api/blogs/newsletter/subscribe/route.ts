@@ -1,5 +1,8 @@
 import { jsonResponse, optionsResponse } from "@/lib/server/http";
-import { isValidNewsletterEmail, subscribeToNewsletter } from "@/services/newsletterService";
+import {
+  isValidNewsletterEmail,
+  subscribeToNewsletter,
+} from "@/services/blogs/newsletter/newsletterService";
 
 export const dynamic = "force-dynamic";
 
