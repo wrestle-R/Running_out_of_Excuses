@@ -42,3 +42,13 @@ model TimelineData {
   @@index([year])
   @@map("TimelineData")
 }
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  subscribedAt DateTime
+  updatedAt    DateTime @updatedAt
+  source       String?
+
+  @@map("NewsletterSubscribers")
+}

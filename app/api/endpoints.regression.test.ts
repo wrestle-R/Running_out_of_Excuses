@@ -9,6 +9,10 @@ import {
   POST as syncPost,
 } from "@/app/api/sync/route";
 import { GET as testGet, OPTIONS as testOptions } from "@/app/api/test/route";
+import {
+  OPTIONS as newsletterSubscribeOptions,
+  POST as newsletterSubscribePost,
+} from "@/app/api/newsletter/subscribe/route";
 
 const getServerEnvMock = vi.hoisted(() => vi.fn());
 const getLatestStravaActivitiesMock = vi.hoisted(() => vi.fn());
@@ -21,6 +25,7 @@ const upsertRunsMock = vi.hoisted(() => vi.fn());
 const removeLegacyCsvDuplicatesMock = vi.hoisted(() => vi.fn());
 const rebuildTimelineDataFromRunsMock = vi.hoisted(() => vi.fn());
 const rebuildTimelineDataForActivitiesMock = vi.hoisted(() => vi.fn());
+const subscribeToNewsletterMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/server/env", () => ({
   getServerEnv: getServerEnvMock,
@@ -40,6 +45,11 @@ vi.mock("@/services/runService", () => ({
   removeLegacyCsvDuplicates: removeLegacyCsvDuplicatesMock,
   rebuildTimelineDataFromRuns: rebuildTimelineDataFromRunsMock,
   rebuildTimelineDataForActivities: rebuildTimelineDataForActivitiesMock,
+}));
+
+vi.mock("@/services/newsletterService", () => ({
+  isValidNewsletterEmail: (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+  subscribeToNewsletter: subscribeToNewsletterMock,
 }));
 
 function expectCorsHeaders(response: Response) {
@@ -315,6 +325,82 @@ describe("API endpoint regression suite", () => {
 
   it("OPTIONS /api/test returns CORS preflight", () => {
     const response = testOptions();
+
+    expect(response.status).toBe(204);
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/newsletter/subscribe returns success response", async () => {
+    subscribeToNewsletterMock.mockResolvedValueOnce({ email: "test@example.com" });
+
+    const response = await newsletterSubscribePost(
+      new Request("http://localhost/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "test@example.com",
+          subscribedAt: "2026-05-15T00:00:00.000Z",
+          source: "blogs",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      message: "Successfully subscribed",
+      email: "test@example.com",
+    });
+    expect(subscribeToNewsletterMock).toHaveBeenCalledWith({
+      email: "test@example.com",
+      subscribedAt: "2026-05-15T00:00:00.000Z",
+      source: "blogs",
+    });
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/newsletter/subscribe validates email", async () => {
+    const response = await newsletterSubscribePost(
+      new Request("http://localhost/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "invalid-email" }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({
+      success: false,
+      message: "Invalid email address",
+    });
+    expect(subscribeToNewsletterMock).not.toHaveBeenCalled();
+    expectCorsHeaders(response);
+  });
+
+  it("POST /api/newsletter/subscribe returns sanitized server error", async () => {
+    subscribeToNewsletterMock.mockRejectedValueOnce(new Error("database details"));
+
+    const response = await newsletterSubscribePost(
+      new Request("http://localhost/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "test@example.com" }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+    expectCorsHeaders(response);
+  });
+
+  it("OPTIONS /api/newsletter/subscribe returns CORS preflight", () => {
+    const response = newsletterSubscribeOptions();
 
     expect(response.status).toBe(204);
     expectCorsHeaders(response);
