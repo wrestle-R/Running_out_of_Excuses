@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { fetchRunsPage, fetchTimelineYear } from "@/lib/api";
 import type { TimelineYearSummary } from "@/types";
 
-// Month data array for May, June, July
+// Month data array for the running timeline copy.
 const monthsData = [
 	{
 		key: "May",
@@ -153,6 +153,30 @@ const monthsData = [
 		],
 		description: "New lows have been hit ran the first week and then stopped entirely after the first week",
 		challenge: "Busy schedule with the Internship and the College submission and finals, and the heat and humidity is the worst thing in this world",
+	},
+	{
+		key: "May",
+		month: 5,
+		year: 2026,
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
+		description: "Had exams and tried to start running but it was too hot just couldnt",
+		challenge: "Lows go even further need to run more",
+	},
+	{
+		key: "June",
+		month: 6,
+		year: 2026,
+		images: [
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
+			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
+		],
+		description: "Couldnt bring myself to run it was too hot, played a lot of badminton",
+		challenge: "Joined the gym and played a lot of badminton",
 	},
 ];
 
@@ -384,8 +408,7 @@ export function TimelineDemo() {
 					</div>
 				),
 			};
-		})
-		.filter((item) => item.totalRuns > 0);
+		});
 
 	return (
 		<div className="w-full bg-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
