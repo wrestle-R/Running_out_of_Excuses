@@ -1,4 +1,5 @@
 import { getServerEnv } from "@/lib/server/env";
+import { trustedRefreshOrigin, validRefreshSession } from "@/lib/server/refresh-auth";
 import { jsonResponse, optionsResponse, textResponse } from "@/lib/server/http";
 import { getLatestStravaActivities, iterateStravaActivityPages } from "@/lib/server/strava";
 import {
@@ -15,7 +16,9 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!trustedRefreshOrigin(request)) return Response.json({ error: "Invalid request origin" }, { status: 403 });
+  if (!validRefreshSession(request)) return Response.json({ error: "Authentication required" }, { status: 401 });
   try {
     const env = getServerEnv();
     const existingRuns = await countRuns();

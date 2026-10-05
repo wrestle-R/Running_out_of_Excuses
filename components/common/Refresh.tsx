@@ -24,28 +24,40 @@ const Refresh = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [unlocking, setUnlocking] = useState(false);
   const router = useRouter();
 
-  // Check password on mount from sessionStorage
   useEffect(() => {
-    const savedAuth = sessionStorage.getItem('refreshPageAuth');
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    const controller = new AbortController();
+    fetch('/api/refresh/auth', { cache: 'no-store', signal: controller.signal })
+      .then(async response => response.ok && (await response.json()).authenticated === true)
+      .then(authenticated => { if (!controller.signal.aborted) setIsAuthenticated(authenticated); })
+      .catch(() => {})
+      .finally(() => { if (!controller.signal.aborted) setCheckingSession(false); });
+    return () => controller.abort();
   }, []);
 
-  const handlePasswordSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const correctPassword = process.env.NEXT_PUBLIC_REFRESH_PAGE_PASSWORD;
-    
-    if (passwordInput === correctPassword) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('refreshPageAuth', 'true');
-      setPasswordError('');
+    setUnlocking(true);
+    setPasswordError('');
+    try {
+      const response = await fetch('/api/refresh/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      if (!response.ok) {
+        setPasswordError(response.status === 401 ? 'Incorrect password' : 'Unable to unlock. Please check the server configuration.');
+        return;
+      }
+      setIsAuthenticated((await response.json()).authenticated === true);
+    } catch {
+      setPasswordError('Unable to reach the server. Please try again.');
+    } finally {
       setPasswordInput('');
-    } else {
-      setPasswordError('Incorrect password');
-      setPasswordInput('');
+      setUnlocking(false);
     }
   };
 
@@ -277,7 +289,8 @@ const Refresh = () => {
         </div>
 
         {/* Password Authentication Modal */}
-        {!isAuthenticated ? (
+        {checkingSession && <p role="status" className="text-center text-white/50">Checking your session...</p>}
+        {!checkingSession && !isAuthenticated ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
             <div className="w-full max-w-md bg-pure-black border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
                {/* Decorative glare */}
@@ -315,9 +328,10 @@ const Refresh = () => {
                 
                 <button
                   type="submit"
+                  disabled={unlocking}
                   className="w-full py-4 bg-white text-black rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors duration-200 mt-2"
                 >
-                  Unlock
+                  {unlocking ? 'Unlocking...' : 'Unlock'}
                 </button>
 
                 <button

@@ -5,3 +5,5 @@ out
 .env.prod
 npm-debug.log*
 .env
+!.env.example
+*.tsbuildinfo

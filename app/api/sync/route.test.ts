@@ -1,3 +1,4 @@
+import { createRefreshSession, REFRESH_COOKIE } from "@/lib/server/refresh-auth";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 
@@ -30,6 +31,7 @@ vi.mock("@/services/runService", () => ({
 describe("POST /api/sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("REFRESH_PAGE_PASSWORD", "test-refresh-password");
     getServerEnvMock.mockReturnValue({
       STRAVA_CLIENT_ID: "id",
       STRAVA_CLIENT_SECRET: "secret",
@@ -46,7 +48,7 @@ describe("POST /api/sync", () => {
     removeLegacyCsvDuplicatesMock.mockResolvedValue({ removed: 0 });
     rebuildTimelineDataForActivitiesMock.mockResolvedValue({ monthsRebuilt: 1 });
 
-    const response = await POST();
+    const response = await POST(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
     const body = await response.json();
 
     expect(getLatestStravaActivitiesMock).toHaveBeenCalledWith(expect.anything(), 25);
@@ -65,7 +67,7 @@ describe("POST /api/sync", () => {
     removeLegacyCsvDuplicatesMock.mockResolvedValue({ removed: 0 });
     rebuildTimelineDataFromRunsMock.mockResolvedValue({ monthsRebuilt: 12, yearsRebuilt: 1 });
 
-    const response = await POST();
+    const response = await POST(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
     const body = await response.json();
 
     expect(rebuildTimelineDataFromRunsMock).toHaveBeenCalledTimes(1);

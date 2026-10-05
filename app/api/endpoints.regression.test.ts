@@ -1,3 +1,4 @@
+import { createRefreshSession, REFRESH_COOKIE } from "@/lib/server/refresh-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as activitiesGet, OPTIONS as activitiesOptions } from "@/app/api/activities/route";
 import { GET as runsGet, OPTIONS as runsOptions } from "@/app/api/runs/route";
@@ -78,6 +79,7 @@ function expectCorsHeaders(response: Response) {
 describe("API endpoint regression suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("REFRESH_PAGE_PASSWORD", "test-refresh-password");
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     getServerEnvMock.mockReturnValue({
@@ -270,7 +272,7 @@ describe("API endpoint regression suite", () => {
     removeLegacyCsvDuplicatesMock.mockResolvedValueOnce({ removed: 0 });
     rebuildTimelineDataForActivitiesMock.mockResolvedValueOnce({ monthsRebuilt: 1 });
 
-    const response = await syncPost();
+    const response = await syncPost(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -296,7 +298,7 @@ describe("API endpoint regression suite", () => {
     removeLegacyCsvDuplicatesMock.mockResolvedValueOnce({ removed: 0 });
     rebuildTimelineDataFromRunsMock.mockResolvedValueOnce({ monthsRebuilt: 12, yearsRebuilt: 1 });
 
-    const response = await syncPost();
+    const response = await syncPost(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -309,7 +311,7 @@ describe("API endpoint regression suite", () => {
     countRunsMock.mockResolvedValueOnce(101);
     getLatestStravaActivitiesMock.mockRejectedValueOnce(new Error("unexpected db details"));
 
-    const response = await syncPost();
+    const response = await syncPost(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
     const body = await response.json();
 
     expect(response.status).toBe(500);
