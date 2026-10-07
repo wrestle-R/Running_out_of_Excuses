@@ -5,6 +5,35 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
 
 ## API Routes
 
+### Spotify routes: `/api/blogs/spotify/`
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `now-playing` | Current track; no playback returns `isPlaying: false` |
+| GET | `last-played`, `recent-tracks` | Owner listening history |
+| GET | `top-tracks`, `top-artists`, `playlists` | Owner music lists |
+| GET | `search?q=...`, `getTrack?id=...`, `preview/[id]` | Public track metadata |
+| GET | `playlist-tracks?limit=50&offset=0` | Configured playlist contents, paginated |
+| POST | `addTrack` | Add `{ track_id }`; returns a signed `deleteToken` |
+| DELETE | `removeTrack` | Remove `{ track_id, delete_token }` from the configured playlist |
+| GET | `status` | Configuration and cached authentication flags, without tokens |
+
+All routes support `OPTIONS`. Responses preserve the Astro song pages' field names.
+Playlist reads use user authorization and current Spotify `/items` endpoints;
+the response normalizes both `item` and legacy `track` fields. Arbitrary private
+playlist IDs cannot be read through this public endpoint.
+
+Errors include `code`, `error`, and `message`: missing/revoked user authorization is
+`503 SPOTIFY_AUTH_REQUIRED`; Spotify access restrictions are `403`; a duplicate song
+is `409`; Spotify throttling is `429` with `Retry-After`. Raw token errors and secrets
+are never returned. GET requests and token refreshes are deduplicated in process.
+
+Writes validate the browser origin, body size, IDs, and removal proof. Duplicate checks
+cover every playlist page. These protections and rate limits are scoped to each
+server process. The blog polls playback every 15 seconds while visible and updates
+the displayed progress locally every second. Authorization setup is documented in
+the root README and available with `npm run spotify:authorize`.
+
 ### `GET /api/activities`
 - Purpose: Fetch latest Strava activities directly from Strava (limit 50).
 - Params: none.

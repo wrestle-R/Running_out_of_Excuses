@@ -13,7 +13,8 @@
     "check:prisma-client": "sh -c 'set -a; . ./.env.local; set +a; prisma generate && prisma validate'",
     "db:generate": "prisma generate",
     "db:push": "sh -c 'set -a; . ./.env.local; set +a; prisma db push'",
-    "db:push:prod": "sh -c 'set -a; . ./.env.prod; set +a; prisma db push'"
+    "db:push:prod": "sh -c 'set -a; . ./.env.prod; set +a; prisma db push'",
+    "spotify:authorize": "node scripts/spotify-authorize.mjs"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.6",
