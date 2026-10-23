@@ -8,7 +8,7 @@ const repertoire = read("../services/blogs/guitar/repertoire.json");
 if (list.songs.length !== 199 || new Set(list.songs.map(s => s.id)).size !== 199 || list.songs.some((s, i) => s.position !== i + 1)) throw new Error("Expected the owner's exact ordered 199-track list");
 const known = new Set(catalogue.map(s => s.id));
 if (known.size !== catalogue.length || list.songs.some(s => !known.has(s.id))) throw new Error("Inconsistent song catalogue");
-const playable = new Set(repertoire.versions.v3);
+const playable = new Set(repertoire.versions[repertoire.currentVersion]);
 const songs = catalogue.map(song => ({ ...song, arrangement_id: playable.has(song.id) ? song.id : null }));
 const db = new PrismaClient({ log: [] });
 try {

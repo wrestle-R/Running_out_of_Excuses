@@ -16,10 +16,23 @@ model BlogGuitarRun {
   answers      Json
   percentile   Int?     @db.SmallInt
   previousRuns Int      @map("previous_runs")
+  elapsedMs    Int?     @map("elapsed_ms")
+  benchmarkRuns Int     @default(0) @map("benchmark_runs")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([version, score], map: "blog_guitar_leaderboard_version_score_idx")
+  @@index([version, score, elapsedMs], map: "blog_guitar_leaderboard_version_score_time_idx")
   @@map("blog_guitar_leaderboard")
+}
+
+model BlogGuitarBenchmark {
+  version   String
+  sampleId  Int    @map("sample_id") @db.SmallInt
+  score     Int    @db.SmallInt
+  elapsedMs Int    @map("elapsed_ms")
+
+  @@id([version, sampleId])
+  @@map("blog_guitar_benchmarks")
 }
 
 model BlogGuitarSong {
@@ -99,4 +112,22 @@ model BlogPostView {
   updatedAt DateTime @updatedAt
 
   @@map("BlogPostViews")
+}
+
+model BlogGuitarSession {
+  id                String    @id @db.Uuid
+  version           String
+  questions         Json
+  options           Json
+  questionIndex     Int       @default(0) @map("question_index") @db.SmallInt
+  answers           Json
+  questionStartedAt DateTime  @default(now()) @map("question_started_at") @db.Timestamptz(6)
+  answeredAt        DateTime? @map("answered_at") @db.Timestamptz(6)
+  elapsedMs         Int       @default(0) @map("elapsed_ms")
+  result            Json?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@index([createdAt], map: "blog_guitar_sessions_created_at_idx")
+  @@map("blog_guitar_sessions")
 }

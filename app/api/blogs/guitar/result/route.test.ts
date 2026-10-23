@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 vi.mock("@/services/blogs/guitar/guitarService", async importOriginal => ({ ...await importOriginal<typeof import("@/services/blogs/guitar/guitarService")>(), saveQuiz: vi.fn() }));
+import repertoire from "@/services/blogs/guitar/repertoire.json";
 import { POST, OPTIONS } from "./route";
 import { saveQuiz, RunConflict } from "@/services/blogs/guitar/guitarService";
 
@@ -15,6 +16,11 @@ describe("guitar results endpoint", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toEqual({ percentile: 75, previousRuns: 4 });
+  });
+  it("rejects direct timed results even with a fabricated zero time", async () => {
+    const answers=repertoire.versions.v4.slice(0,10).map(songId=>({songId,answerId:songId}));
+    expect((await POST(request({...body,version:"v4",elapsedMs:0,answers}))).status).toBe(400);
+    expect(saveQuiz).not.toHaveBeenCalled();
   });
   it("rejects malformed JSON without touching the database", async () => {
     const response = await POST(new Request("http://localhost/", { method: "POST", body: "{" }));

@@ -25,6 +25,8 @@ export async function POST(request: Request) {
       text += decoder.decode();
     } finally { reader.releaseLock(); }
     const input = validateSubmission(JSON.parse(text));
+    // Timed cohorts accept only server-recorded answers through session routes.
+    if (input.version === "v4") throw new InvalidQuiz();
     return jsonResponse(await saveQuiz(input), { headers });
   } catch (error) {
     if (error instanceof InvalidQuiz || error instanceof SyntaxError) return jsonResponse({ error: "Invalid quiz result" }, { status: 400, headers });

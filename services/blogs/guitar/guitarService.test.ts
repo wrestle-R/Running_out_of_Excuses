@@ -33,3 +33,14 @@ describe("quiz submission validation", () => {
     expect(() => validateSubmission(input)).toThrow(InvalidQuiz);
   });
 });
+
+describe("timed result validation", () => {
+  const timed = () => ({runId:valid().runId, version:"v4", elapsedMs:42000, answers:repertoire.versions.v4.slice(0,10).map(songId=>({songId,answerId:songId}))});
+  it("requires a bounded integer duration for timed cohorts", () => {
+    expect(validateSubmission(timed()).elapsedMs).toBe(42000);
+    for (const elapsedMs of [undefined,null,-1,1.5,86400001,"42000",Infinity,NaN]) expect(()=>validateSubmission({...timed(),elapsedMs})).toThrow(InvalidQuiz);
+  });
+  it("keeps timing out of legacy submissions", () => {
+    expect(validateSubmission({...valid(),elapsedMs:42000})).not.toHaveProperty("elapsedMs");
+  });
+});

@@ -1,32 +1,49 @@
-# Guitar songs and quiz results
+# Guitar quiz
 
-`POST /api/blogs/guitar/result` saves anonymous runs in the existing PostgreSQL database. It accepts `{runId, version, answers: [{songId, answerId}]}` and returns `{percentile, previousRuns}`. Version v3 requires ten distinct registered questions; v1 and v2 continue to accept five for older frontends. Scores are calculated on the server. There are no names or public leaderboard.
+The Blog uses a200-song playable bank (v4), drawn only from the owner's supplied lists and top-song selection. Each quiz asks ten unique songs with four answer choices. The ordered database list remains199tracks; the233-identity master catalogue also keeps older selections and pending titles. Only200registered arrangements are playable. Supabase arrangement links match the registry.
 
-Repeating an identical run ID returns its original comparison snapshot; changing the version or answers under that ID returns 409. Answers are sorted into canonical question order. A PostgreSQL advisory transaction lock makes comparison and insertion atomic across server instances. Percentiles use previous runs of the same version, with half credit for tied scores. The first run returns `null`, rather than an invented percentile.
+## Server-owned sessions and timing
 
-`GET /api/blogs/guitar/songs` returns `{listId, count, songs: [{position, id, title, artist, playable}]}` from the database in the supplied order. `owner-selection` contains exactly 199 tracks, as confirmed by the owner. The master song table preserves 233 unique identities, including older requests outside that list. Titles shared by different artists have separate IDs. `playable` describes an existing reviewed clip, not the presence of a title in the catalogue. There are 43 eligible arrangements across the master catalogue; remaining tracks await notation and timing verification.
+- `POST /api/blogs/guitar/session` creates an anonymous UUID-capability session and returns its first question. The server selects the questions and choices.
+- `POST /api/blogs/guitar/session/:runId/answer` accepts only `{questionNumber, answerId}`. The server checks that the question is current and the choice belongs to it, records the answer and stops that question's clock.
+- `POST /api/blogs/guitar/session/:runId/next` accepts only `{questionNumber}` for the answered question. It issues the next question and starts its server clock. A retry returns the same question without resetting its timestamp.
+
+PostgreSQL `clock_timestamp()` measures each question from issuance to answer receipt. Time between an accepted answer and requesting the next question is excluded. Replay/Stop do not reset or pause the question clock. All timestamps, accumulated duration, progress, score and percentile are server-owned. Client timing/score/pool fields are rejected; the legacy result endpoint rejects all v4 submissions. Changing Date/performance clocks in a browser or posting a fabricated elapsedMs does not change saved timing.
+
+This is server-authoritative timing, not a claim to prevent all automated answering or source inspection in an anonymous web game. Network and request-processing time is included. Sessions expire after24hours. No timer is shown in the UI. The start page briefly explains ten riffs, four choices, replays, score priority and faster answers breaking ties; it does not advertise catalogue counts or transcription details.
+
+Question rows are locked during answer/advance actions. Identical answer retries retain the original answer, time and result snapshot; a changed answer returns409. A completed session and its scored result commit in the same transaction. Timed results rank by score descending, then elapsed milliseconds ascending; exactly equal score/time receives midrank tie credit. A global advisory transaction lock serializes comparison/insertion across instances.
+
+## Sample benchmarks
+
+The owner requested dummy comparison data. `scripts/seed-guitar-benchmarks.mjs` creates200deterministic sample results in a separate RLS table, never fictional human accounts or entries in the real-run table. v4 percentiles combine those benchmarks with previous real completed v4 sessions. API snapshots distinguish previousRuns from benchmarkRuns. UI wording calls this a quiz benchmark and does not claim an invented number of human players. The seed is repeatable and preserves real runs.
+
+## Legacy compatibility
+
+`POST /api/blogs/guitar/result` remains available for v1/v2 five-answer and v3 ten-answer frontends. It calculates scores from answer IDs, canonicalizes order, validates unique eligible questions, and returns the original comparison snapshot on retry. v4 cannot bypass session timing through this endpoint. Percentile cohorts are separated by version, so old scores/timing do not compete with the expanded timed game.
 
 ## Database setup
 
-Apply the additive migrations in order with the established database credentials. Do not reset the database:
+Apply additive migrations in order using the existing server connection. Do not reset existing tables:
 
-1. `prisma/migrations/202610230001_guitar_quiz/migration.sql` creates `public.blog_guitar_leaderboard`, its version/score index and row-level security.
-2. `prisma/migrations/202610230002_guitar_song_list_ten_questions/migration.sql` permits totals of five or ten, checks the answer count against the total, and creates `public.blog_guitar_songs` and `public.blog_guitar_song_list`.
+1. `202610230001_guitar_quiz` creates the anonymous results table and RLS.
+2. `202610230002_guitar_song_list_ten_questions` creates master/list tables and permits five/ten-answer runs.
+3. `202610230003_guitar_timing_benchmarks` adds elapsed-time/sample snapshot columns and separate benchmark records.
+4. `202610230004_guitar_server_sessions` creates server-owned question/timing/session state.
 
-For example, use `npx prisma db execute --file <migration-path> --schema prisma/schema.prisma` with this project's environment loaded. Then run:
+Then run, with this project's existing environment loaded:
 
 ```sh
 node --env-file=.env.local scripts/seed-guitar-songs.mjs
+node --env-file=.env.local scripts/seed-guitar-benchmarks.mjs
 ```
 
-The seed validates the exact 199-track list, upserts master metadata and replaces only the `owner-selection` membership in one transaction. It retains legacy songs, other lists and quiz results, and can be rerun safely. Both migrations and this seed were applied to the configured Supabase database on 2026-10-23. Existing blog and running tables were not changed. No new environment variables are required.
+Both migrations and seeds were applied to the configured Supabase database. All guitar tables have RLS enabled and deny direct anonymous/authenticated Supabase-role access. Existing server credentials perform queries. No new environment variables or environment-file edits are required.
 
-All three guitar tables have RLS enabled, and the Supabase anonymous and authenticated roles have no direct table privileges. Existing server database credentials perform queries. Credentials and real environment files must stay out of source control.
+The song seed upserts233master identities and transactionally replaces only the199-position owner-selection list. It derives arrangement availability from repertoire.currentVersion and retains runs, other lists and legacy identities. `GET /api/blogs/guitar/songs` returns that ordered list with its real count and playable flags.
 
-## Keeping the frontends compatible
+## Source and release checks
 
-`services/blogs/guitar/repertoire.json` records accepted question IDs, question counts and answer IDs. v1 preserves the original bank, v2 the expanded bank, and v3 uses that same 43-clip bank with ten questions. The new version separates five- and ten-question percentile cohorts. Synchronize eligible arrangements with the Blog repository and increment the version when the question pool or quiz length changes.
+`services/blogs/guitar/repertoire.json` pins version-specific IDs, counts and confuser lists synchronized from the Blog. The frontend holds199local notation excerpts plus the separately scored GoT arrangement.33tabs are marked as automated transcriptions; the Blog source notes explicitly distinguish those from contributor notation and describe arrangement limits. Do not call every clip human-transcribed or studio-perfect.
 
-`services/blogs/guitar/song-list.json` is the exact ordered owner list; `song-catalogue.json` retains the combined master list. The Blog keeps the matching list in `src/lib/guitar-song-list.json`. Production uses the existing Run_blog API host, while local Astro development uses port 3000. Deploy this backend before publishing the ten-question Blog frontend.
-
-Validation covers malformed bodies, duplicate questions, wrong version-specific counts, unknown IDs, oversized streamed requests, response privacy and database failures. Real-database checks verify ordered song identities, ten-answer storage, server scoring, retry snapshots, legacy compatibility and RLS. Browser checks complete all ten rounds against the real local API. Generated verification rows are removed afterward.
+Deploy the backend before the matching Blog frontend. Verify unit/build checks, independent notation audit, all200actual Web Audio schedules, the full ten-question browser flow, retry/failure paths, server-time bypass rejection, and public endpoint behavior. Remove only generated verification session/result UUIDs afterward; retain sample benchmarks and real users' runs.
