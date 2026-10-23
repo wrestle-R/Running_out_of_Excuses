@@ -5,6 +5,14 @@ import repertoire from "./repertoire.json";
 
 const valid = () => ({ runId: "f1826582-b56c-4504-9710-32fb08995915", version: "v1", answers: ["shape", "blue", "dandelions", "snowman", "505"].map(songId => ({ songId, answerId: songId })) });
 describe("quiz submission validation", () => {
+  it("accepts ten distinct v3 answers while retaining five-question v1/v2 runs", () => {
+    const answers = repertoire.versions.v3.slice(0, 10).map(songId => ({ songId, answerId: songId }));
+    expect(validateSubmission({ ...valid(), version: "v3", answers }).answers).toHaveLength(10);
+    expect(() => validateSubmission({ ...valid(), version: "v3" })).toThrow(InvalidQuiz);
+    expect(() => validateSubmission({ ...valid(), version: "v3", answers: [...answers.slice(1), answers[1]] })).toThrow(InvalidQuiz);
+    expect(() => validateSubmission({ ...valid(), version: "v2", answers })).toThrow(InvalidQuiz);
+    expect(validateSubmission(valid()).answers).toHaveLength(5);
+  });
   it("accepts all registered v2 questions and excludes metadata-only songs", () => {
     expect(new Set(repertoire.versions.v2).size).toBe(repertoire.versions.v2.length);
     for (const songId of repertoire.versions.v2) {

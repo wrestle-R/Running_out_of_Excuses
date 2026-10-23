@@ -22,6 +22,29 @@ model BlogGuitarRun {
   @@map("blog_guitar_leaderboard")
 }
 
+model BlogGuitarSong {
+  id            String   @id
+  title         String
+  artist        String
+  arrangementId String?  @map("arrangement_id")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  listEntries   BlogGuitarSongList[]
+
+  @@map("blog_guitar_songs")
+}
+
+model BlogGuitarSongList {
+  listId   String @map("list_id")
+  position Int    @db.SmallInt
+  songId   String @map("song_id")
+  song     BlogGuitarSong @relation(fields: [songId], references: [id])
+
+  @@id([listId, position])
+  @@unique([listId, songId])
+  @@map("blog_guitar_song_list")
+}
+
 model Run {
   id               String   @id @default(cuid())
   stravaId         BigInt   @unique
