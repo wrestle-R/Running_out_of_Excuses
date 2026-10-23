@@ -8,6 +8,20 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model BlogGuitarRun {
+  runId        String   @id @map("run_id") @db.Uuid
+  version      String
+  score        Int      @db.SmallInt
+  total        Int      @default(5) @db.SmallInt
+  answers      Json
+  percentile   Int?     @db.SmallInt
+  previousRuns Int      @map("previous_runs")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([version, score], map: "blog_guitar_leaderboard_version_score_idx")
+  @@map("blog_guitar_leaderboard")
+}
+
 model Run {
   id               String   @id @default(cuid())
   stravaId         BigInt   @unique
