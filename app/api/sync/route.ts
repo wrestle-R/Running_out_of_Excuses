@@ -88,6 +88,12 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Unable to sync runs:", error);
+    if (message.includes('"code":"Inactive"')) {
+      return jsonResponse({
+        error: "Strava reports this API application as inactive. Check your Strava API settings before syncing again.",
+        code: "STRAVA_APP_INACTIVE",
+      }, { status: 503 });
+    }
     return jsonResponse(
       { error: "Unable to sync runs" },
       { status: message.includes("rate limit exceeded") ? 429 : 500 }

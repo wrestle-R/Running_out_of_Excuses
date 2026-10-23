@@ -75,4 +75,13 @@ describe("POST /api/sync", () => {
     expect(body.timelineYearsRebuilt).toBe(1);
     expect(body.mode).toBe("seed");
   });
+  it("explains an inactive hosted Strava application without changing runs", async () => {
+    countRunsMock.mockResolvedValue(104);
+    getLatestStravaActivitiesMock.mockRejectedValue(new Error('Strava Activities Error: {"errors":[{"code":"Inactive"}]}'));
+    const response = await POST(new Request("https://example.com/api/sync", { method: "POST", headers: { cookie: REFRESH_COOKIE + "=" + createRefreshSession() } }));
+    expect(response.status).toBe(503);
+    expect((await response.json()).code).toBe("STRAVA_APP_INACTIVE");
+    expect(upsertRunsMock).not.toHaveBeenCalled();
+  });
+
 });
