@@ -28,6 +28,8 @@ describe("server-timed quiz actions",()=>{
 describe("seven-song sessions reuse the existing game",()=>{
   it("keeps old ten-song clients compatible and explicitly opts new clients into seven",()=>{
     expect(sessionVersion({})).toBe("v4");expect(sessionVersion({version:"v5"})).toBe("v5");
+    expect(sessionVersion({version:"v5",prepared:true})).toBe("v5");
+    expect(()=>sessionVersion({version:"v5",prepared:"yes"})).toThrow(InvalidQuiz);
     expect(SESSION_TOTALS.v4).toBe(10);expect(SESSION_TOTALS.v5).toBe(7);
     for(const value of [{version:"v6"},{version:"v5",score:7},null,[]])expect(()=>sessionVersion(value)).toThrow(InvalidQuiz);
   });

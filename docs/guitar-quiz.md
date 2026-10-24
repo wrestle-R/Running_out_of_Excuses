@@ -25,3 +25,13 @@ Scores are static `/guitar-riffs/:id.json` assets, loaded only for the selected 
 The quiz has one Play/Playing/Replay control, a music-themed loader, a sticker Next button and automatic progression after feedback. Artist details open on hover/focus or a dedicated mobile info button; optional Spotify cover artwork loads only on demand and never blocks answers. A short portrait orientation popup disappears after 3.5 seconds. The pick uses the shared movable-sticker implementation, including persistence, keyboard movement and Reset.
 
 No environment file changes are needed. Use the existing local backend on port 3000 for frontend development. Publish backend changes before the Blog frontend.
+
+## Background preparation (2026-10-24)
+
+The new frontend creates one `{version:"v5",prepared:true}` session on the intro. Its first question has a null `question_started_at`; no score clock runs while the visitor reads the intro. Only that first score and its synthesized PCM samples are warmed. No AudioContext is started and no sound plays before a gesture.
+
+`POST /api/blogs/guitar/session/:runId/activate` takes `{questionNumber}` and atomically starts that question once. It returns the current question plus exactly one upcoming question (or null on the last). A repeated activation preserves its original timestamp; skipping an unanswered question or answering a dormant question is rejected. Activation of the next question requires the previous saved answer. The existing session table is reused; migration `20261024085432_guitar_prepared_sessions` makes only its start timestamp nullable. Default legacy session creation still starts immediately.
+
+On play, the cached question/audio can appear while activation is acknowledged in the background. Answer controls enable after both playback and activation. During the current riff, the upcoming score and PCM warm in small yielding batches. On answer, local feedback is immediate; server persistence overlaps the existing two-second pause. Advancing still requires a successful server save. Failure rolls back the provisional counter/highlights and allows retrying the same choice. The final percentile is only shown after the server commits it.
+
+Memory remains bounded (up to 64 PCM sample keys and 64 AudioBuffer keys; converted PCM is released). Loading indicators wait 240ms, avoiding flashes on warm transitions. No new dependencies, song recordings, database tables, or environment variables are introduced.

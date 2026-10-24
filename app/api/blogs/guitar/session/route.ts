@@ -4,4 +4,9 @@ import { quizResponse, readQuizAction } from "@/services/blogs/guitar/sessionHtt
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
 export const OPTIONS=optionsResponse;
-export async function POST(request:Request) { return quizResponse(async()=>createQuizSession(sessionVersion(await readQuizAction(request)))); }
+export async function POST(request:Request) {
+  return quizResponse(async()=>{
+    const body=await readQuizAction(request),version=sessionVersion(body);
+    return createQuizSession(version,(body as {prepared?:boolean}).prepared===true);
+  });
+}
