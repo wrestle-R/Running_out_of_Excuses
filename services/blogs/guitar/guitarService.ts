@@ -12,7 +12,7 @@ export function validateSubmission(value: unknown): Submission {
   const body = value as Record<string, unknown>;
   if (typeof body.runId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.runId)) throw new InvalidQuiz();
   if (typeof body.version !== "string" || !Object.hasOwn(repertoire.versions, body.version)) throw new InvalidQuiz();
-  const timed = body.version === "v4";
+  const timed = ["v4","v5"].includes(body.version);
   if (timed && (typeof body.elapsedMs !== "number" || !Number.isInteger(body.elapsedMs) || body.elapsedMs < 0 || body.elapsedMs > 86400000)) throw new InvalidQuiz();
   const eligible = repertoire.versions[body.version as keyof typeof repertoire.versions];
   const total = repertoire.questionCounts[body.version as keyof typeof repertoire.questionCounts];
@@ -37,7 +37,7 @@ export async function saveQuiz(input: Submission) {
 export async function saveQuizWithTransaction(tx: Prisma.TransactionClient, input: Submission) {
   const total = repertoire.questionCounts[input.version as keyof typeof repertoire.questionCounts];
   const score = input.answers.filter(a => a.songId === a.answerId).length;
-  const timed = input.version === "v4";
+  const timed = ["v4","v5"].includes(input.version);
   const elapsedMs = timed ? input.elapsedMs! : null;
   const response = (run: {percentile:number|null;previousRuns:number;benchmarkRuns:number}) => timed
     ? {percentile:run.percentile,previousRuns:run.previousRuns,benchmarkRuns:run.benchmarkRuns}
@@ -51,15 +51,18 @@ export async function saveQuizWithTransaction(tx: Prisma.TransactionClient, inpu
     }
     const [stats] = await tx.$queryRaw<{ total: number; real: number; samples: number; below: number; equal: number }[]>`
       WITH comparisons AS (
-        SELECT score, elapsed_ms, false AS sample FROM public.blog_guitar_leaderboard WHERE version = ${input.version}
+        SELECT score, total, elapsed_ms, false AS sample FROM public.blog_guitar_leaderboard WHERE ${timed} OR version = ${input.version}
         UNION ALL
-        SELECT score, elapsed_ms, true AS sample FROM public.blog_guitar_benchmarks WHERE version = ${input.version}
+        SELECT score, CASE WHEN version='v5' THEN 7 WHEN version IN ('v3','v4') THEN 10 ELSE 5 END AS total,
+          elapsed_ms, true AS sample FROM public.blog_guitar_benchmarks WHERE ${timed} OR version = ${input.version}
       )
       SELECT count(*)::int AS total,
         count(*) FILTER (WHERE NOT sample)::int AS real,
         count(*) FILTER (WHERE sample)::int AS samples,
-        count(*) FILTER (WHERE score < ${score} OR (score = ${score} AND ${timed} AND elapsed_ms > ${elapsedMs}::integer))::int AS below,
-        count(*) FILTER (WHERE score = ${score} AND (NOT ${timed} OR elapsed_ms = ${elapsedMs}::integer))::int AS equal
+        count(*) FILTER (WHERE score * ${total} < ${score} * total OR
+          (score * ${total} = ${score} * total AND ${timed} AND elapsed_ms * ${total} > ${elapsedMs}::integer * total))::int AS below,
+        count(*) FILTER (WHERE score * ${total} = ${score} * total AND
+          (NOT ${timed} OR elapsed_ms IS NULL OR elapsed_ms * ${total} = ${elapsedMs}::integer * total))::int AS equal
       FROM comparisons`;
     const percentile = stats.total ? Math.round(100 * (stats.below + stats.equal / 2) / stats.total) : null;
     await tx.$executeRaw`INSERT INTO public.blog_guitar_leaderboard (run_id, version, score, total, answers, elapsed_ms, percentile, previous_runs, benchmark_runs)

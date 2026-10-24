@@ -20,6 +20,7 @@ describe("guitar results endpoint", () => {
   it("rejects direct timed results even with a fabricated zero time", async () => {
     const answers=repertoire.versions.v4.slice(0,10).map(songId=>({songId,answerId:songId}));
     expect((await POST(request({...body,version:"v4",elapsedMs:0,answers}))).status).toBe(400);
+    expect((await POST(request({...body,version:"v5",elapsedMs:0,answers:answers.slice(0,7)}))).status).toBe(400);
     expect(saveQuiz).not.toHaveBeenCalled();
   });
   it("rejects malformed JSON without touching the database", async () => {

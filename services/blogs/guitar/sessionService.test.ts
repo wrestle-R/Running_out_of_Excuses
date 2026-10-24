@@ -2,7 +2,7 @@ import {describe,it,expect,vi} from "vitest";
 vi.mock("@/lib/db",()=>({prisma:{}}));
 import repertoire from "./repertoire.json";
 import catalogue from "./song-catalogue.json";
-import {validateSessionAction,makeQuizOptions} from "./sessionService";
+import {validateSessionAction,makeQuizOptions,sessionVersion,SESSION_TOTALS} from "./sessionService";
 import {InvalidQuiz} from "./guitarService";
 const id="f1826582-b56c-4504-9710-32fb08995915";
 describe("server-timed quiz actions",()=>{
@@ -22,5 +22,13 @@ describe("server-timed quiz actions",()=>{
   });
   it.each([null,{},[],{questionNumber:0},{questionNumber:11},{questionNumber:1.5},{questionNumber:1,answerId:7}])("rejects malformed answer actions: %j",body=>{
     expect(()=>validateSessionAction(id,body,true)).toThrow(InvalidQuiz);
+  });
+});
+
+describe("seven-song sessions reuse the existing game",()=>{
+  it("keeps old ten-song clients compatible and explicitly opts new clients into seven",()=>{
+    expect(sessionVersion({})).toBe("v4");expect(sessionVersion({version:"v5"})).toBe("v5");
+    expect(SESSION_TOTALS.v4).toBe(10);expect(SESSION_TOTALS.v5).toBe(7);
+    for(const value of [{version:"v6"},{version:"v5",score:7},null,[]])expect(()=>sessionVersion(value)).toThrow(InvalidQuiz);
   });
 });
