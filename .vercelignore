@@ -1,0 +1,7 @@
+local-docs
+work
+.env*
+.git
+.next
+node_modules
+*.tsbuildinfo

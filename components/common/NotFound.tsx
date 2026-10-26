@@ -46,12 +46,6 @@ export default function NotFound() {
             >
               View Runs
             </button>
-            <button
-              onClick={() => router.push("/refresh")}
-              className="px-4 py-2 text-sm rounded-full bg-pure-white/5 text-pure-white/70 hover:bg-pure-white/10 hover:text-pure-white transition-all duration-200"
-            >
-              Refresh Data
-            </button>
           </div>
         </div>
       </div>
