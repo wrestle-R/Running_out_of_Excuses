@@ -7,7 +7,17 @@ import { fetchRunsPage, fetchTimelineYear } from "@/lib/api";
 import type { TimelineYearSummary } from "@/types";
 
 // Month data array for the running timeline copy.
-const monthsData = [
+type TimelinePeriod = {
+	key: string;
+	month: number;
+	endMonth?: number;
+	year: number;
+	images: string[];
+	description: string;
+	challenge: string;
+};
+
+const monthsData: TimelinePeriod[] = [
 	{
 		key: "May",
 		month: 5,
@@ -167,16 +177,17 @@ const monthsData = [
 		challenge: "Lows go even further need to run more",
 	},
 	{
-		key: "June",
+		key: "June–October",
 		month: 6,
+		endMonth: 10,
 		year: 2026,
 		images: [
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
 			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
 		],
-		description: "Couldnt bring myself to run it was too hot, played a lot of badminton",
-		challenge: "Joined the gym and played a lot of badminton",
+		description: "Cest fini, we dont talk about this",
+		challenge: "Passion burnt out and didnt really feel like running",
 	},
 ];
 
@@ -333,22 +344,26 @@ export function TimelineDemo() {
 	const timelineData = monthsData
 		.filter((month) => month.year === selectedYear)
 		.map((month) => {
-			const monthSummary = selectedSummary?.months.find((item) => item.month === month.month);
-			const topRuns = monthSummary?.topRuns ?? [];
-			const totalRuns = monthSummary?.totalRuns ?? 0;
-			const totalDistance = monthSummary?.totalDistanceKm ?? 0;
+			const periodMonths = selectedSummary?.months.filter(
+				(item) => item.month >= month.month && item.month <= (month.endMonth ?? month.month)
+			) ?? [];
+			const topRuns = periodMonths.flatMap((item) => item.topRuns)
+				.sort((a, b) => b.distance_km - a.distance_km)
+				.slice(0, 3);
+			const totalRuns = periodMonths.reduce((total, item) => total + item.totalRuns, 0);
+			const totalDistance = periodMonths.reduce((total, item) => total + item.totalDistanceKm, 0);
 
 			return {
 				monthData: month,
 				totalRuns,
 				title: (
 					<div className="flex flex-col gap-1 md:gap-1">
-						<h2 className={`${['August', 'September', 'October'].includes(month.key) ? 'text-xl sm:text-2xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-6xl'} font-bold tracking-tighter uppercase mb-2 md:mb-8 text-center md:text-left`}>
+						<h2 className={`${month.endMonth ? 'text-xl sm:text-2xl md:text-4xl' : ['August', 'September', 'October'].includes(month.key) ? 'text-xl sm:text-2xl md:text-5xl' : 'text-2xl sm:text-3xl md:text-6xl'} font-bold tracking-tighter uppercase mb-2 md:mb-8 text-center md:text-left`}>
 							<span className="text-white/80">{month.key} {month.year}</span>
 						</h2>
 						<div className="inline-flex w-full md:w-[60%] gap-2 md:gap-3 text-xs md:text-sm text-gray-400 font-semibold mb-1 bg-white/5 rounded-lg px-3 md:px-4 py-1.5 md:py-2 shadow-inner">
 							<span>
-								<span className="text-white font-bold">{totalRuns}</span> runs
+								<span className="text-white font-bold">{totalRuns}</span> {month.endMonth ? "activities" : "runs"}
 							</span>
 							<span className="opacity-60">|</span>
 							<span>
@@ -372,7 +387,7 @@ export function TimelineDemo() {
 						{topRuns.length > 0 && (
 							<div className="mb-3 md:mb-4">
 								<h4 className="text-white/60 text-xs md:text-sm font-semibold mb-2 md:mb-2 text-left md:text-center">
-									Top Runs This Month
+									{month.endMonth ? "Top runs in this period" : "Top Runs This Month"}
 								</h4>
 								<div className="flex flex-col sm:flex-row sm:flex-wrap justify-start md:justify-center gap-2 md:gap-2">
 									{topRuns.map((run, idx) => (
