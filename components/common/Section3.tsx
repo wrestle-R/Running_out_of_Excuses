@@ -428,47 +428,30 @@ export function TimelineDemo() {
 	return (
 		<div className="w-full bg-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
 			<div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
-				<div className="mb-6 w-full max-w-md px-4">
-					<div className="mb-3 flex items-end justify-between">
-						<div>
-							<div className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/35">
-								Running Since
-							</div>
-							<div className="mt-1 text-xl font-black leading-none text-white">
-								2025 <span className="text-white/35">to</span> 2026
-							</div>
-						</div>
-						<div className="text-right text-xs font-bold uppercase tracking-wider text-white/45">
-							{selectedYear}
-						</div>
+				<header className="flex w-full flex-col gap-4 border-b border-white/15 px-4 sm:flex-row sm:items-end sm:justify-between md:px-3">
+					<h2 id="running-timeline-heading" className="pb-1 text-2xl font-semibold uppercase tracking-tight text-white sm:pb-5 sm:text-3xl md:text-4xl">
+						Mah timeline
+					</h2>
+					<div className="flex gap-5 sm:gap-6" role="group" aria-label="Timeline year">
+						{availableYears.slice().reverse().map((year) => {
+							const active = selectedYear === year;
+							return (
+								<button
+									key={year}
+									type="button"
+									className={`-mb-px min-h-11 border-b-2 px-3 py-3 text-sm font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-4 sm:pb-5 sm:pt-3 sm:text-base ${active ? "border-white text-white" : "border-transparent text-white/45 hover:text-white/80"}`}
+									onClick={() => setSelectedYear(year)}
+									aria-pressed={active}
+									aria-controls="running-timeline-content"
+								>
+									{year}
+								</button>
+							);
+						})}
 					</div>
+				</header>
 
-					<div className="relative rounded-full border border-white/10 bg-white/[0.06] p-1.5">
-						<div className="absolute left-7 right-7 top-1/2 h-px -translate-y-1/2 bg-white/15" />
-						<div className="relative grid grid-cols-2 gap-1">
-							{availableYears.slice().reverse().map((year) => {
-								const active = selectedYear === year;
-
-								return (
-									<button
-										key={year}
-										type="button"
-										className={`relative flex h-12 items-center justify-center rounded-full text-sm font-black transition ${
-											active
-												? "bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.18)]"
-												: "text-white/55 hover:bg-white/10 hover:text-white"
-										}`}
-										onClick={() => setSelectedYear(year)}
-										aria-pressed={active}
-									>
-										<span className={`mr-2 size-2 rounded-full ${active ? "bg-black" : "bg-white/35"}`} />
-										{year}
-									</button>
-								);
-							})}
-						</div>
-					</div>
-				</div>
+				<div id="running-timeline-content" className="w-full" aria-busy={loading} aria-labelledby="running-timeline-heading">
 
 				{loading && (
 					<div className="w-full flex items-center justify-center text-gray-400 py-12">
@@ -525,6 +508,7 @@ export function TimelineDemo() {
 				)}
 
 				{!loading && !error && <Timeline data={timelineData} />}
+				</div>
 				<Link
 					href="/runs"
 					className="mt-6 md:mt-8 px-6 py-2.5 md:px-5 md:py-2 rounded-full bg-white/10 text-white text-sm font-semibold shadow hover:bg-white/20 transition border border-white/10 backdrop-blur active:scale-95"

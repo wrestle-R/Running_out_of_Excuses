@@ -22,6 +22,30 @@ and CSV exports with saved splits remain available in Personal-Admin.
 The retained server sync endpoints require a server-side `REFRESH_PAGE_PASSWORD`
 and an authenticated session; they are not exposed through page controls.
 
+## Adding photos
+
+Runny currently uses Cloudinary delivery URLs from product environment `dvti0xrsg`.
+There is no upload control in Runny or Personal-Admin.
+
+1. Open the [Cloudinary Console](https://console.cloudinary.com/), choose the existing
+   product environment, then open Media Library.
+2. Upload the photos (drag-and-drop or the Upload button), then use **Copy URL → Original**.
+3. For the draggable gallery, add an entry to `runningImages` in
+   `components/common/InfiniteGrid.tsx` with a unique `id`, `src`, descriptive `alt`,
+   and optional caption in `desc`.
+4. For timeline photos, add the delivery URL to the correct period's `images` array
+   in `components/common/Section3.tsx`. June–October 2026 is one combined period.
+5. Commit and push to GitHub `main`; the connected Vercel project publishes it.
+   Uploading to Cloudinary alone does not add a photo to the site's lists.
+
+The timeline currently shows the first two photos on phones and all assigned photos
+on desktop. The files already in `public/gallery` are not automatically discovered
+by the current gallery component. Local files can also be explicitly referenced as
+`/gallery/filename.jpg` after adding them to `public/gallery` and the appropriate list.
+
+See [Cloudinary's Media Library guide](https://cloudinary.com/documentation/media_library_for_developers).
+Do not deploy with the Vercel CLI.
+
 ## Spotify for the blog
 
 Spotify endpoints are hosted here under `/api/blogs/spotify/`. The Astro blog's
