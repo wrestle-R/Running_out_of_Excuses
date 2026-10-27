@@ -4,6 +4,7 @@ import { Timeline } from "./timeline-ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchRunsPage, fetchTimelineYear } from "@/lib/api";
+import { useRunnyPhotos, photoDisplayUrl } from "@/lib/runny-photos";
 import type { TimelineYearSummary } from "@/types";
 
 // Month data array for the running timeline copy.
@@ -12,7 +13,6 @@ type TimelinePeriod = {
 	month: number;
 	endMonth?: number;
 	year: number;
-	images: string[];
 	description: string;
 	challenge: string;
 };
@@ -22,11 +22,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "May",
 		month: 5,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432188/1_mdhq5f.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432183/2_lx6d65.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/3_pu3pw9.jpg",
-		],
 		description:
 			"Just Started Running, love seeing new places and feeling of accomplishment just after I finish a run",
 		challenge: "I had a hairline fracture on my left foot, so I had to slow down.",
@@ -35,11 +30,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "June",
 		month: 6,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/4_l532dq.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/5_lrl7lw.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/6_k2eque.jpg",
-		],
 		description:
 			"Started going on longer runs lately and for the first time, actually started focussing on enjoying the run itself & Not just finishing it.",
 		challenge: "I was in my gav so couldn't run and fell sick every second week.",
@@ -48,11 +38,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "July",
 		month: 7,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/7_mncp5f.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/8_hewv9v.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/9_ubd6ea.jpg",
-		],
 		description: "The First week was my week of milestones, the rest was mehhh	",
 		challenge: "With college starting struggled with making time for running",
 	},
@@ -60,11 +45,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "August",
 		month: 8,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Saw some real progress started hitting new paces and distances",
 		challenge: "With college starting struggled with making time for running",
 	},
@@ -72,11 +52,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "September",
 		month: 9,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432197/13_ke9xps.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/14_pvhemv.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432191/15_pkt5y4.jpg",
-		],
 		description: "Didnt really Run much this month, college in full force",
 		challenge: "The ultimate low point- physically and emotionally",
 	},
@@ -84,11 +59,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "October",
 		month: 10,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432193/16_pwiik2.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432192/17_astwir.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/18_g8d7b6.jpg",
-		],
 		description: "Tried getting back into shape after a rough September, didnt go too well",
 		challenge: "Fell sick for 2 weeks straight, lost all strength to run",
 	},
@@ -96,11 +66,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "November",
 		month: 11,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/19_qghitb.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/20_x8ps41.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/21_qew9o1.jpg",
-		],
 		description: "Started again, frustrating to start from scratch",
 		challenge: "Getting back to my former strength, after a break",
 	},
@@ -108,11 +73,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "December",
 		month: 12,
 		year: 2025,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Really tried to end the year on a strong note, ran my first half Marathon!.",
 		challenge: "I dont particularly like running in the cold mornings, had cold and cough.",
 	},
@@ -120,11 +80,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "January",
 		month: 1,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Registered for HSR 21k, training begins and started to increase my easy runs to 10k",
 		challenge: "My left knee started hurting again, had to take it slow. My Right knee felt left out, so it started hurting as well",
 	},
@@ -132,11 +87,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "February",
 		month: 2,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "And the Downfall begins, after my good start to the year slowed down drastically",
 		challenge: "Was tired all the time, my legs were hurting and really struggled to make time for runs. Even on days I would have otherwise gone for a run I didn't go",
 	},
@@ -144,11 +94,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "March",
 		month: 3,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Marathon Postoned, and started a 150km challenge",
 		challenge: "The heat makes it very hard to run, that combined with hefty college workload combined with the sweaty heat made long runs feel like hell",
 	},
@@ -156,11 +101,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "April",
 		month: 4,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "New lows have been hit ran the first week and then stopped entirely after the first week",
 		challenge: "Busy schedule with the Internship and the College submission and finals, and the heat and humidity is the worst thing in this world",
 	},
@@ -168,11 +108,6 @@ const monthsData: TimelinePeriod[] = [
 		key: "May",
 		month: 5,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Had exams and tried to start running but it was too hot just couldnt",
 		challenge: "Lows go even further need to run more",
 	},
@@ -181,11 +116,6 @@ const monthsData: TimelinePeriod[] = [
 		month: 6,
 		endMonth: 10,
 		year: 2026,
-		images: [
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-			"https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-		],
 		description: "Cest fini, we dont talk about this",
 		challenge: "Passion burnt out and didnt really feel like running",
 	},
@@ -338,6 +268,7 @@ export function TimelineDemo() {
 		};
 	}, [timelineByYear]);
 
+	const photos = useRunnyPhotos();
 	const selectedSummary = timelineByYear[selectedYear];
 
 	// Build timeline data from month copy and lightweight year summary.
@@ -405,18 +336,21 @@ export function TimelineDemo() {
 							</div>
 						)}
 						<div className="flex flex-row mt-3 md:mt-4 gap-2 md:gap-4 justify-start md:justify-center flex-wrap overflow-hidden">
-							{month.images.map((src, idx) => {
+							{photos.filter(photo => photo.placement === "timeline" && photo.year === month.year && photo.month === month.month).map((photo, idx) => {
 								// Show only first 2 images on mobile, all 3 on desktop
 								if (isMobile && idx >= 2) return null;
-								
+
 								return (
+									<figure key={photo.id} tabIndex={photo.caption ? 0 : undefined} className="group relative max-w-full focus-visible:outline-2 focus-visible:outline-white">
 									<img
-										key={src}
-										src={src}
-										alt={`Run ${month.key} ${idx + 1}`}
+										src={photoDisplayUrl(photo.url)}
+										alt={photo.alt}
+
 										className="rounded-lg md:rounded-xl h-28 sm:h-32 md:h-48 w-auto shadow-lg border-2 border-white/10 hover:scale-105 transition flex-shrink-0"
 										style={{ objectFit: "contain" }}
 									/>
+									{photo.caption && <figcaption className="absolute inset-x-0 bottom-0 rounded-b-lg bg-black/85 px-3 py-2 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">{photo.caption}</figcaption>}
+									</figure>
 								);
 							})}
 						</div>
@@ -428,10 +362,7 @@ export function TimelineDemo() {
 	return (
 		<div className="w-full bg-black py-8 md:py-12 pb-6 md:pb-8 px-0 md:px-8 font-montserrat overflow-x-hidden">
 			<div className="max-w-6xl mx-auto flex flex-col items-center justify-center">
-				<header className="flex w-full flex-col gap-4 border-b border-white/15 px-4 sm:flex-row sm:items-end sm:justify-between md:px-3">
-					<h2 id="running-timeline-heading" className="pb-1 text-2xl font-semibold uppercase tracking-tight text-white sm:pb-5 sm:text-3xl md:text-4xl">
-						Mah timeline
-					</h2>
+				<div className="mb-6 flex justify-center border-b border-white/15" aria-label="Choose a timeline year">
 					<div className="flex gap-5 sm:gap-6" role="group" aria-label="Timeline year">
 						{availableYears.slice().reverse().map((year) => {
 							const active = selectedYear === year;
@@ -449,7 +380,7 @@ export function TimelineDemo() {
 							);
 						})}
 					</div>
-				</header>
+				</div>
 
 				<div id="running-timeline-content" className="w-full" aria-busy={loading} aria-labelledby="running-timeline-heading">
 

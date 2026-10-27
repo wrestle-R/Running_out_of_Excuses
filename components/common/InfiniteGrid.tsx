@@ -1,4 +1,5 @@
 "use client";
+import { useRunnyPhotos, photoDisplayUrl } from "@/lib/runny-photos";
 import React, { useState } from 'react';
 import {
   GridBody,
@@ -6,137 +7,11 @@ import {
   GridItem,
 } from "@/components/ui/infinite-drag-scroll";
 
-const runningImages = [
-  {
-    id: 0,
-    alt: "Trail Adventure",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432183/2_lx6d65.jpg",
-    desc: "One of the Kanyakumari Beaches.",
-  },
-  {
-    id: 1,
-    alt: "City Marathon",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/3_pu3pw9.jpg",
-    desc: "Who gonna carry the boats son!",
-  },
-  {
-    id: 2,
-    alt: "Blue hour",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/5_lrl7lw.jpg",
-    desc: "The BLUE hour.",
-  },
-  {
-    id: 3,
-    alt: "Recovery",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/7_mncp5f.jpg",
-    desc: "Elevated Nature Trail.",
-  },
-  {
-    id: 4,
-    alt: "Mountain Trail",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/8_hewv9v.jpg",
-    desc: "Jean Baptiste Garden.",
-  },
-  {
-    id: 5,
-    alt: "Morning Run 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432189/10_okbnnl.jpg",
-    desc: "Karungal Church.",
-  },
-  {
-    id: 6,
-    alt: "City Marathon 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/12_uyvcqs.jpg",
-    desc: "City streets.",
-  },
-  {
-    id: 7,
-    alt: "Training Day 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432197/13_ke9xps.jpg",
-    desc: "The grass is the greenest where you water it.",
-  },
-  {
-    id: 8,
-    alt: "Recovery 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432193/16_pwiik2.jpg",
-    desc: "Mumbai Pretty Sometimes.",
-  },
-  {
-    id: 9,
-    alt: "Mountain Trail 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432192/17_astwir.jpg",
-    desc: "West Coastss.",
-  },
-  {
-    id: 10,
-    alt: "Victory Moment 2",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/18_g8d7b6.jpg",
-    desc: "MUNNAAARR.",
-  },
-  {
-    id: 11,
-    alt: "City Marathon 3",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/21_qew9o1.jpg",
-    desc: "Local Legend who.",
-  },
-  /* Commented images below */
-  {
-    id: 12,
-    alt: "Morning Run",
-    src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432188/1_mdhq5f.jpg",
-    desc: "Clare(Clear) Road.",
-  },
-  // {
-  //   id: 13,
-  //   alt: "Training Day",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432185/4_l532dq.jpg",
-  //   desc: "I love Beaches.",
-  // },
-  // {
-  //   id: 14,
-  //   alt: "Group Run",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/6_k2eque.jpg",
-  //   desc: "Hanging bridge Kanyakumari.",
-  // },
-  // {
-  //   id: 15,
-  //   alt: "Victory Moment",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/9_ubd6ea.jpg",
-  //   desc: "Walk-Talk Marines.",
-  // },
-  // {
-  //   id: 16,
-  //   alt: "Trail Adventure 2",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/11_vrvoqc.jpg",
-  //   desc: "Karungal roads.",
-  // },
-  // {
-  //   id: 17,
-  //   alt: "Long Run 2",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432190/14_pvhemv.jpg",
-  //   desc: "My KOM(King of the Mountain).",
-  // },
-  // {
-  //   id: 18,
-  //   alt: "Group Run 2",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432191/15_pkt5y4.jpg",
-  //   desc: "Mornings in RaceCourse>>.",
-  // },
-  // {
-  //   id: 19,
-  //   alt: "Morning Run 3",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432186/19_qghitb.jpg",
-  //   desc: "Altitude of 6000.",
-  // },
-  // {
-  //   id: 20,
-  //   alt: "Trail Adventure 3",
-  //   src: "https://res.cloudinary.com/dvti0xrsg/image/upload/v1765432187/20_x8ps41.jpg",
-  //   desc: "Robinson.",
-  // },
-];
+
 
 const InfiniteGrid = () => {
+  const photos = useRunnyPhotos();
+  const runningImages = React.useMemo(() => photos.filter(p => p.placement === "gallery").map(p => ({ id: p.id, src: p.url, alt: p.alt, desc: p.caption })), [photos]);
   const [hoveredId, setHoveredId] = useState(null);
 
   const handleMouseEnter = (id) => {
@@ -155,7 +30,8 @@ const InfiniteGrid = () => {
     const validImages = runningImages.filter(img => img && img.src);
     
     // We want to generate ~60 images for sufficient scrolling
-    const totalSlots = 60;
+    const totalSlots = validImages.length ? Math.max(60, validImages.length) : 0;
+    const unused = new Set(validImages.map(image => image.id));
     
     // We'll fill the slots one by one, picking an image that doesn't conflict
     // with neighbors:
@@ -190,6 +66,12 @@ const InfiniteGrid = () => {
         candidates = validImages;
       }
       
+      // Include every saved photo before repeating the gallery, including new uploads.
+      if (unused.size) {
+        const fresh = candidates.filter(image => unused.has(image.id));
+        candidates = fresh.length ? fresh : validImages.filter(image => unused.has(image.id));
+      }
+
       // Pick a random candidate
       // Use a consistent seeded-like randomness to avoid hydration mismatches if possible, 
       // but simple math random is fine for client-side only. 
@@ -197,6 +79,7 @@ const InfiniteGrid = () => {
       const seed = (i * 9301 + 49297) % 233280;
       const choiceIndex = Math.floor((seed / 233280) * candidates.length);
       const choice = candidates[choiceIndex];
+      unused.delete(choice.id);
       
       result.push({
         ...choice,
@@ -209,7 +92,7 @@ const InfiniteGrid = () => {
   };
 
   // Use useMemo ensures we don't regenerate on every render
-  const extendedImages = React.useMemo(() => createDiverseSet(), []);
+  const extendedImages = React.useMemo(() => createDiverseSet(), [runningImages]);
 
   return (
     <DraggableContainer variant="masonry">
@@ -223,14 +106,17 @@ const InfiniteGrid = () => {
             `}
             onMouseEnter={() => handleMouseEnter(image.originalId)}
             onMouseLeave={handleMouseLeave}
+            tabIndex={0}
+            onFocus={() => handleMouseEnter(image.originalId)}
+            onBlur={handleMouseLeave}
           >
             <img
-              src={image.src}
+              src={photoDisplayUrl(image.src)}
               alt={image.alt}
               className="pointer-events-none absolute h-full w-full object-cover rounded"
               draggable={false}
             />
-            {hoveredId === image.id && (
+            {hoveredId === image.originalId && (
               <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent rounded transition-all duration-300">
                 <span className="text-pure-white text-sm md:text-base font-medium p-3 md:p-4 text-center w-full">
                   {image.desc}

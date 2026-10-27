@@ -131,3 +131,21 @@ model BlogGuitarSession {
   @@index([createdAt], map: "blog_guitar_sessions_created_at_idx")
   @@map("blog_guitar_sessions")
 }
+
+model RunnyPhoto {
+  id        String    @id @db.Uuid
+  url       String
+  publicId  String?   @unique @map("public_id")
+  alt       String
+  caption   String    @default("")
+  placement String
+  year      Int?
+  month     Int?
+  position  Int
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([placement, year, month, position], map: "runny_photos_placement_idx")
+  @@map("runny_photos")
+}

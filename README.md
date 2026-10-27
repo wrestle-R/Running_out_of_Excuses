@@ -24,27 +24,22 @@ and an authenticated session; they are not exposed through page controls.
 
 ## Adding photos
 
-Runny currently uses Cloudinary delivery URLs from product environment `dvti0xrsg`.
-There is no upload control in Runny or Personal-Admin.
+Open [Admin → Runny](https://admin-rdp.vercel.app/runny) and sign in. Under **Runny photos**:
 
-1. Open the [Cloudinary Console](https://console.cloudinary.com/), choose the existing
-   product environment, then open Media Library.
-2. Upload the photos (drag-and-drop or the Upload button), then use **Copy URL → Original**.
-3. For the draggable gallery, add an entry to `runningImages` in
-   `components/common/InfiniteGrid.tsx` with a unique `id`, `src`, descriptive `alt`,
-   and optional caption in `desc`.
-4. For timeline photos, add the delivery URL to the correct period's `images` array
-   in `components/common/Section3.tsx`. June–October 2026 is one combined period.
-5. Commit and push to GitHub `main`; the connected Vercel project publishes it.
-   Uploading to Cloudinary alone does not add a photo to the site's lists.
+1. Choose the draggable gallery or a timeline period (June–October 2026 remains one period).
+2. Choose a JPG, PNG, WebP, AVIF or GIF under 10 MB, add a photo description and optional caption.
+3. Press **Upload & publish**. Photos go directly to the existing Cloudinary account `dvti0xrsg`.
+4. Use **Save text**, **Replace photo**, and the arrow buttons to update existing photos. **Remove** hides a photo; **Show removed photos → Restore photo** brings it back. Removal preserves the Cloudinary original.
 
-The timeline currently shows the first two photos on phones and all assigned photos
-on desktop. The files already in `public/gallery` are not automatically discovered
-by the current gallery component. Local files can also be explicitly referenced as
-`/gallery/filename.jpg` after adding them to `public/gallery` and the appropriate list.
+Runny reads `public.runny_photos` through `/api/photos` without a response cache. New visits and reloads show saved changes; already-open visible pages refresh photos every 30 seconds and when focused. No deployment is needed for photo changes. The first two timeline photos appear on phones; all appear on desktop. Timeline captions are available on hover or keyboard focus, gallery captions on hover/focus.
 
-See [Cloudinary's Media Library guide](https://cloudinary.com/documentation/media_library_for_developers).
-Do not deploy with the Vercel CLI.
+The original 13 gallery and 42 timeline placements were migrated without changing their URLs. `lib/runny-photo-seed.json` is only the original migration/failure fallback, not the live editor. A successful empty collection remains empty.
+
+For a new database, apply `prisma/migrations/202610270001_runny_photos/migration.sql` and run `node --env-file=.env.local scripts/seed-runny-photos.mjs`. This seed is repeatable and does not overwrite existing edits or restore removed photos. Do not reset the shared database. RLS prevents direct access by Supabase anonymous/authenticated roles; only server database connections read/write photo records.
+
+Cloudinary credentials are server-only variables in **Personal-Admin**, not Runny or the browser. Upload signatures use unique `runny/` IDs and cannot overwrite originals. Admin verifies uploaded assets against Cloudinary before saving their URLs. No public write endpoint exists.
+
+Publish code through GitHub `main` linked to Vercel. Do not deploy with the Vercel CLI.
 
 ## Spotify for the blog
 
