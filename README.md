@@ -33,6 +33,8 @@ Open [Admin → Runny](https://admin-rdp.vercel.app/runny) and sign in. Under **
 
 Runny reads `public.runny_photos` through `/api/photos` without a response cache. New visits and reloads show saved changes; already-open visible pages refresh photos every 30 seconds and when focused. No deployment is needed for photo changes. The first two timeline photos appear on phones; all appear on desktop. Timeline captions are available on hover or keyboard focus, gallery captions on hover/focus.
 
+The gallery shuffles once per visit, shows every available photo before repeating, and keeps matching photos apart across the scrolling edges. Routine photo refreshes keep that visit’s arrangement steady. Duplicate photo URLs are displayed as one source.
+
 The original 13 gallery and 42 timeline placements were migrated without changing their URLs. `lib/runny-photo-seed.json` is only the original migration/failure fallback, not the live editor. A successful empty collection remains empty.
 
 For a new database, apply `prisma/migrations/202610270001_runny_photos/migration.sql` and run `node --env-file=.env.local scripts/seed-runny-photos.mjs`. This seed is repeatable and does not overwrite existing edits or restore removed photos. Do not reset the shared database. RLS prevents direct access by Supabase anonymous/authenticated roles; only server database connections read/write photo records.
