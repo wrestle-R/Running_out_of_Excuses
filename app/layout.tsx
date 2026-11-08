@@ -18,6 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <Script src="/external-links.js" strategy="afterInteractive" />
         <CopyAttribution />
         {children}
         <Script src="https://admin-rdp.vercel.app/tracker.js" strategy="afterInteractive" />
