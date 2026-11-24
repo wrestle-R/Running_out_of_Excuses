@@ -94,12 +94,20 @@ describe("Spotify migration", () => {
     expect(fetchMock.mock.calls[1][0]).toContain(`/playlists/${PLAYLIST}/items`);
   });
 
-  it("reads renamed playlist totals and tolerates absent playlist contents", async () => {
+  it("publishes only public playlist summaries and tolerates absent totals", async () => {
     fetchMock.mockResolvedValueOnce(token()).mockResolvedValueOnce(json({ items: [
-      { id: "first", items: { total: 22 } }, { id: "legacy", tracks: { total: 3 } }, { id: "metadata-only" },
+      { id: "first", public: true, items: { total: 22 } },
+      { id: "legacy", public: true, tracks: { total: 3 } },
+      { id: "metadata-only", public: true },
+      { id: "private", public: false, name: "Private fixture" },
+      { id: "visibility-unknown", name: "Unclassified fixture" },
+      null,
     ] }));
     const response = await endpoint("playlists", request("playlists"));
-    expect((await response.json()).playlists.map(item => item.trackCount)).toEqual([22, 3, 0]);
+    const { playlists } = await response.json();
+    expect(playlists.map(item => [item.id, item.trackCount])).toEqual([
+      ["first", 22], ["legacy", 3], ["metadata-only", 0],
+    ]);
   });
 
   it("refreshes a stale playlist after an edit handled by another server instance", async () => {

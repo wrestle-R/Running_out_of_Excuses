@@ -11,7 +11,8 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
 | --- | --- | --- |
 | GET | `now-playing` | Current track; no playback returns `isPlaying: false` |
 | GET | `last-played`, `recent-tracks` | Owner listening history |
-| GET | `top-tracks`, `top-artists`, `playlists` | Owner music lists |
+| GET | `top-tracks`, `top-artists` | Owner music lists |
+| GET | `playlists` | Public playlist summaries |
 | GET | `search?q=...`, `getTrack?id=...`, `preview/[id]` | Public track metadata |
 | GET | `playlist-tracks?limit=50&offset=0` | Configured playlist contents, paginated |
 | POST | `addTrack` | Add `{ track_id }`; returns a signed `deleteToken` |

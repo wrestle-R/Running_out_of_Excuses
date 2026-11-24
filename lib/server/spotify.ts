@@ -305,7 +305,7 @@ export async function spotifyEndpoint(endpoint: string, request: Request, previe
       }
       case "playlists": {
         const data = await read("/me/playlists?limit=20", "user", 60_000);
-        result = { playlists: (data.items || []).filter(Boolean).map(playlist => ({
+        result = { playlists: (data.items || []).filter(playlist => playlist?.public === true).map(playlist => ({
           id: playlist.id, name: playlist.name, description: playlist.description || "", image: playlist.images?.[0]?.url || null,
           trackCount: playlist.items?.total ?? playlist.tracks?.total ?? 0,
           isPublic: !!playlist.public, isCollaborative: !!playlist.collaborative,
