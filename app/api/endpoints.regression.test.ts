@@ -1,6 +1,6 @@
 import { createRefreshSession, REFRESH_COOKIE } from "@/lib/server/refresh-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GET as activitiesGet, OPTIONS as activitiesOptions } from "@/app/api/activities/route";
+import { GET as activitiesGet } from "@/app/api/activities/route";
 import { GET as runsGet, OPTIONS as runsOptions } from "@/app/api/runs/route";
 import { GET as runsFeedGet, OPTIONS as runsFeedOptions } from "@/app/api/runs/feed/route";
 import { GET as timelineGet, OPTIONS as timelineOptions } from "@/app/api/timeline/route";
@@ -76,6 +76,12 @@ function expectCorsHeaders(response: Response) {
   expect(response.headers.get("access-control-max-age")).toBe("86400");
 }
 
+function signedActivityRequest() {
+  return new Request("https://runny.test/api/activities", {
+    headers: { Cookie: `${REFRESH_COOKIE}=${createRefreshSession()}` },
+  });
+}
+
 describe("API endpoint regression suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -107,30 +113,32 @@ describe("API endpoint regression suite", () => {
     const activities = [{ id: "1", name: "Run" }];
     getLatestStravaActivitiesMock.mockResolvedValueOnce(activities);
 
-    const response = await activitiesGet();
+    const response = await activitiesGet(signedActivityRequest());
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(getLatestStravaActivitiesMock).toHaveBeenCalledWith(expect.anything(), 50);
     expect(body).toEqual(activities);
-    expectCorsHeaders(response);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.has("access-control-allow-origin")).toBe(false);
   });
 
   it("GET /api/activities returns sanitized rate-limit error", async () => {
     getLatestStravaActivitiesMock.mockRejectedValueOnce(new Error("rate limit exceeded"));
 
-    const response = await activitiesGet();
+    const response = await activitiesGet(signedActivityRequest());
     const body = await response.json();
 
     expect(response.status).toBe(429);
     expect(body).toEqual({ error: "Unable to load activities" });
   });
 
-  it("OPTIONS /api/activities returns CORS preflight", () => {
-    const response = activitiesOptions();
+  it("GET /api/activities requires a refresh session before contacting Strava", async () => {
+    const response = await activitiesGet(new Request("https://runny.test/api/activities"));
 
-    expect(response.status).toBe(204);
-    expectCorsHeaders(response);
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(getLatestStravaActivitiesMock).not.toHaveBeenCalled();
   });
 
   it("GET /api/runs returns all runs", async () => {

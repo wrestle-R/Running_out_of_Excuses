@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  exchangeAuthorizationCode,
   getAllStravaActivities,
   getStravaActivities,
   normalizeStravaActivity,
@@ -199,36 +198,5 @@ describe("getStravaActivities", () => {
       "https://www.strava.com/api/v3/athlete/activities?per_page=50&page=3",
       expect.any(Object)
     );
-  });
-});
-
-describe("exchangeAuthorizationCode", () => {
-  it("posts the code exchange request to Strava", async () => {
-    const fetcher = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: vi.fn().mockResolvedValue({ refresh_token: "new-refresh" }),
-    });
-
-    const result = await exchangeAuthorizationCode(
-      {
-        STRAVA_CLIENT_ID: "client-id",
-        STRAVA_CLIENT_SECRET: "client-secret",
-      },
-      "abc123",
-      fetcher
-    );
-
-    expect(result).toEqual({
-      ok: true,
-      status: 200,
-      data: { refresh_token: "new-refresh" },
-    });
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
-      client_id: "client-id",
-      client_secret: "client-secret",
-      code: "abc123",
-      grant_type: "authorization_code",
-    });
   });
 });
