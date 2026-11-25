@@ -11,7 +11,8 @@ This app exposes local Next.js App Router APIs under `app/api/*` and uses a brow
 | --- | --- | --- |
 | GET | `now-playing` | Current track; no playback returns `isPlaying: false` |
 | GET | `last-played`, `recent-tracks` | Owner listening history |
-| GET | `top-tracks`, `top-artists`, `playlists` | Owner music lists |
+| GET | `top-tracks`, `top-artists` | Owner music lists |
+| GET | `playlists` | Public playlist summaries |
 | GET | `search?q=...`, `getTrack?id=...`, `preview/[id]` | Public track metadata |
 | GET | `playlist-tracks?limit=50&offset=0` | Configured playlist contents, paginated |
 | POST | `addTrack` | Add `{ track_id }`; returns a signed `deleteToken` |
@@ -35,13 +36,14 @@ the displayed progress locally every second. Authorization setup is documented i
 the root README and available with `npm run spotify:authorize`.
 
 ### `GET /api/activities`
-- Purpose: Fetch latest Strava activities directly from Strava (limit 50).
+- Purpose: Fetch latest Strava activities directly from Strava (limit 50) for the signed-in owner.
 - Params: none.
 - Success response: array of normalized activities.
 - Error response:
+  - `401` without a valid refresh session.
   - `429` with `{ "error": "Unable to load activities" }` when the thrown error message includes `rate limit exceeded`.
   - `500` with `{ "error": "Unable to load activities" }` for other failures.
-- CORS: `OPTIONS /api/activities` returns `204` with standard CORS headers.
+- Responses are private and uncached. Public consumers use the saved runs and timeline routes.
 
 ### `GET /api/runs`
 - Purpose: Return all runs from the `Runs` table ordered by `startDate desc`.

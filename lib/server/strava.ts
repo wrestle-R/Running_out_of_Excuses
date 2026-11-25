@@ -263,30 +263,3 @@ export async function getStravaActivities(
 ) {
   return getLatestStravaActivities(env, DEFAULT_REFRESH_LIMIT, fetcher, now);
 }
-
-export async function exchangeAuthorizationCode(
-  env: ServerEnv,
-  code: string,
-  fetcher: Fetcher = fetch
-) {
-  if (!env.STRAVA_CLIENT_ID || !env.STRAVA_CLIENT_SECRET) {
-    throw new Error("Missing Strava client environment variables");
-  }
-
-  const response = await fetcher(STRAVA_TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: env.STRAVA_CLIENT_ID,
-      client_secret: env.STRAVA_CLIENT_SECRET,
-      code,
-      grant_type: "authorization_code",
-    }),
-  });
-
-  return {
-    ok: response.ok,
-    status: response.status,
-    data: await parseJsonResponse(response),
-  };
-}
